@@ -1,29 +1,40 @@
-Class
+JavaScript Class Implementation
 =====
 
-JavaScript class implementation
-
-- Create sub-classes using a class's extend() method
-- Classes inherit methods and properties from their parent prototype
+- Create sub-classes using a class's `extend()` method
+- Classes inherit methods and properties from their parent
 - As part of its own initialization, a new instance can be initialized via a parent class's contructor
 
+=====
 
-//create a new class that inherits from this class
-Class.extend([options])
- `options` argument (optional) is an object that can include any of the following:
-	
-	className:		string used in .toString() for the prototype and instances of the new class
-					if not specified, it will be the same as the super-class
-	
-	init:			function used to initialize a new instance of the class
-					this function can include something like `MyParentClass.call(this)` to initialize the instance via the parent class's constructor
-	
-	extensions:		object containing additional/overriding properties and methods for the prototype of the new class
-	
-	ret:			function used to return a value when Class() is called without the `new` keyword
-	
-	returnInstance:	if `true` and the `ret` option is not a function, a new instance will be returned when Class() is called without the `new` operator
-					 (as if the `new` operator _had_ been used)
+**Class.prototype.extend()**
 
-//restore `Class` to what it was before this script replaced it, optionally providing a new context
-Class.noConflict([newContext])
+A class's `extend()` method creates a new class based on itself. The methods and properties of the prototype are inherited.
+
+`class.extend([options])`
+
+Parameters:
+- `options`  
+An object including any of the following:
+	
+	- `className`  
+	String used in .toString() for the prototype and instances of the new class. If not specified, it will be the same as the super-class.
+	
+	- `init`  
+	Function used to initialize a new instance of the class. This function can include something like `MyParentClass.call(this)` to initialize the instance via the parent class's constructor.
+	
+	- `extensions`  
+	Object containing additional and overriding methods and properties for the prototype of the new class.
+	
+	- `ret`  
+	Function used to return a value when the constructor is called without the `new` keyword.
+	
+	- `returnInstance`  
+	If `true` and the `ret` option is not a function, a new instance will be returned when the constructor is called without the `new` operator (as if the `new` operator _had_ been used).
+
+=====
+
+**Class.noConflict()**  
+Restores `Class` to what it was before this script replaced it, optionally providing a new context.
+
+`Class.noConflict([newContext])`
