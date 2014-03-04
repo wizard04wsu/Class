@@ -11,7 +11,7 @@ JavaScript Class Implementation
 
 A class's `extend()` method creates a new class based on itself. The methods and properties of the prototype are inherited.
 
-`class.extend([options])`
+`MyClass.extend([options])`
 
 Parameters:
 - `options`  
