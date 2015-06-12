@@ -2,8 +2,8 @@ JavaScript Class Implementation
 =====
 
 - Create sub-classes using a class's `extend()` method
-- Classes inherit methods and properties from their parent
-- As part of its own initialization, a new instance can be initialized via a parent class's contructor
+- Classes inherit methods and properties from their super-class
+- As part of its own initialization, a new instance can be initialized via a super-class's constructor
 
 =====
 
@@ -21,7 +21,7 @@ An object including any of the following:
 	String used in .toString() for the prototype and instances of the new class. If not specified, it will be the same as the super-class.
 	
 	- `init`  
-	Function used to initialize a new instance of the class. This function can include something like `MyParentClass.call(this)` to initialize the instance via the parent class's constructor.
+	Function used to initialize a new instance of the class. This function can include something like `MySuperClass.call(this)` to initialize the instance via the super-class's constructor.
 	
 	- `extensions`  
 	Object containing additional and overriding methods and properties for the prototype of the new class.
