@@ -29,7 +29,8 @@ Parameters:
 
 **Example**
 
-`var Rectangle = Class.extend({
+```
+var Rectangle = Class.extend({
 	className:"Rectangle",
 	constructorFn:function (Super, width, height){
 		Super();
@@ -65,7 +66,8 @@ s.toString();	//[instance of Square]
 s.area;		//9
 s.height = 4;
 s.area;		//16
-s.foo;		//I am a rectangle and a square.`
+s.foo;		//I am a rectangle and a square.
+```
 
 
 =====
