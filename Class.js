@@ -125,11 +125,9 @@
 		
 		/*** add the new & overriding properties to the prototype ***/
 
-		if(options.extensions){
-			for(name in options.extensions){
-				if(Object.prototype.hasOwnProperty.call(options.extensions, name)){
-					newPrototype[name] = options.extensions[name];
-				}
+		for(name in options.extensions){
+			if(Object.prototype.hasOwnProperty.call(options.extensions, name)){
+				newPrototype[name] = options.extensions[name];
 			}
 		}
 		
