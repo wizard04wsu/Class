@@ -66,7 +66,7 @@
 			//  4) Possibly if the prototype chain has been screwed with
 
 				if(this.constructor === newClass.prototype.constructor){
-				//this function is the constructor of the new instance (i.e., it's not a super-class constructor)
+				//this function is the constructor of the new instance (i.e., it's not a parent class's constructor)
 					
 					defineProperty(this, "constructor", newClass, true, false, true);
 				}
