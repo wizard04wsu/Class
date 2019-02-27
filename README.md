@@ -39,7 +39,7 @@ var Rectangle = Class.extend({
 		Object.defineProperty(this, "area", { get:function (){ return this.width * this.height; }, enumerable:true, configurable:true });
 	},
 	returnFn:function (width, height){
-		return (width||0) * (height||0);
+		return Math.abs((width||0) * (height||0));
 	},
 	extensions:{
 		foo:"I am a rectangle."
