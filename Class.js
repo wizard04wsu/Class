@@ -48,9 +48,12 @@
 			
 			protoToString = function toString(){ return "[instance of "+className+"]"; };
 		}
-		else{
+		else if(this.name !== (void 0) && /^[a-z_$][a-z0-9_$]*$/i.test(this.name)){
 			//use the name of the parent class
 			className = this.name;
+		}
+		else{
+			className = "Class";
 		}
 		
 
