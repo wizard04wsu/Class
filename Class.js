@@ -30,7 +30,7 @@
 	 * 
 	 * @param {object} [options]
 	 * @param {string} [options.className] - Used as .name for the class function and in .toString() for instances of the class.
-	 * @param {function} [options.constructorFn] - Constructor. A function is passed as the first argument, used to initialize the instance using the parent class' constructor; be sure to call it inside constructorFn (before using `this`).
+	 * @param {function} [options.constructorFn] - Initializes new instances of the class. A function is passed as the first argument, used to initialize the instance using the parent class' constructor; be sure to call it inside constructorFn (before using `this`).
 	 * @param {function} [options.returnFn] - Returns a value when the constructor is called without using the 'new' keyword.
 	 * @param {object} [options.extensions] - Additional and overriding properties and methods for the prototype of the class.
 	 * @return {function} - The new class.
@@ -61,12 +61,12 @@
 			//A new instance is being created; initialize it.
 			//This condition will be true in these cases:
 			//  1) The 'new' operator was used to instantiate this class
-			//  2) The 'new' operator was used to instantiate a subclass, and the subclass's constructorFn() calls its first argument (the bound superFn)
-			//  3) The 'new' operator was used to instantiate a subclass, and the subclass's constructorFn() includes something like `MySuperClass.call(this)`
+			//  2) The 'new' operator was used to instantiate a subclass, and the subclass' constructorFn() calls its first argument (the bound superFn)
+			//  3) The 'new' operator was used to instantiate a subclass, and the subclass' constructorFn() includes something like `MySuperClass.call(this)`
 			//  4) Possibly if the prototype chain has been screwed with
 
 				if(this.constructor === newClass.prototype.constructor){
-				//this function is the constructor of the new instance (i.e., it's not a parent class's constructor)
+				//this function is the constructor of the new instance (i.e., it's not a parent class' constructor)
 					
 					defineProperty(this, "constructor", newClass, true, false, true);
 				}
@@ -87,7 +87,7 @@
 		
 		//override .name
 		defineProperty(newClass, "name", 
-			classNameIsValid(options.className) ? options.className : classNameIsValid(this.name) ? this.name /*parent class's name*/ : "Class", 
+			classNameIsValid(options.className) ? options.className : classNameIsValid(this.name) ? this.name /*parent class' name*/ : "Class", 
 			false, false, true);
 		
 		//override .toString()
