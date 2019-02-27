@@ -37,25 +37,16 @@
 	 */
 	extendFn = function extend(options){
 		
-		var emptyFn, newPrototype, protoToString, className, name, constructorFn, returnFn, newClass;
+		var emptyFn, newPrototype, name, constructorFn, returnFn, newClass;
 
+		function classNameIsValid(className){
+		//checks if the specified classname is valid (note: this doesn't check for reserved words)
+			return className !== (void 0) && /^[a-z_$][a-z0-9_$]*$/i.test(className);
+		}
+		
 		if(options === void 0) options = {};
 		else if(isPrimitive(options)) throw new TypeError("argument 'options' is not an object");
 
-		className = options.className;
-		if(className !== (void 0) && /^[a-z_$][a-z0-9_$]*$/i.test(className)){
-		//the specified classname is valid (note: this doesn't check for reserved words)
-			
-			protoToString = function toString(){ return "[instance of "+className+"]"; };
-		}
-		else if(this.name !== (void 0) && /^[a-z_$][a-z0-9_$]*$/i.test(this.name)){
-			//use the name of the parent class
-			className = this.name;
-		}
-		else{
-			className = "Class";
-		}
-		
 
 		/*** create the new constructor ***/
 
@@ -95,7 +86,9 @@
 		}
 		
 		//override .name
-		defineProperty(newClass, "name", className, false, false, true);
+		defineProperty(newClass, "name", 
+			classNameIsValid(options.className) ? options.className : classNameIsValid(this.name) ? this.name /*parent class's name*/ : "Class", 
+			false, false, true);
 		
 		//override .toString()
 		defineProperty(newClass, "toString", function toString(){ return "function Class() { [custom code] }"; }, true, false, true);
@@ -117,10 +110,15 @@
 		newPrototype = new emptyFn();
 		defineProperty(newPrototype, "constructor", this, true, false, true);
 		
-		if(protoToString){
-			//override .toString()
-			defineProperty(newPrototype, "toString", protoToString, true, false, true);
-		}
+		//override .toString()
+		defineProperty(newPrototype, "toString", 
+			function toString(){
+				if(this.constructor.name !== (void 0) && /^[a-z_$][a-z0-9_$]*$/i.test(this.constructor.name)){
+					return "[instance of "+this.constructor.name+"]";
+				}
+				return "[instance of Class]";
+			}, 
+			true, false, true);
 
 		defineProperty(newClass, "prototype", newPrototype, false, false, false);
 		
