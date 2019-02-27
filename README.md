@@ -19,7 +19,7 @@ This can include any of the following:
 	Used as `.name` for the class constructor and in `.toString()` for instances of the class. If not specified, it will be the same as the parent class.
 	
 	- *constructorFn* {function}  
-	Constructor. A function is passed as the first argument, used to initialize the instance using the parent class' constructor. Be sure to call it inside `constructorFn()` (before using `this`).
+	Initializes new instances of the class. A function is passed as the first argument, used to initialize the instance using the parent class' constructor. Be sure to call it inside `constructorFn()` (before using `this`).
 	
 	- *returnFn* {function}  
 	Returns a value when the constructor is called without using the 'new' keyword.
