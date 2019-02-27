@@ -9,22 +9,22 @@ This implementation still works with IE 11. Subclasses are created using a class
 
 Creates a new class that inherits from the parent class.
 
-_class_.extend([_options_])
+*class*.extend([*options*])
 
 Parameters:
-- _options_ {object}  
+- *options* {object}  
 This can include any of the following:
 	
-	- _className_ {string}  
+	- *className* {string}  
 	Used as `.name` for the class constructor and in `.toString()` for instances of the class. If not specified, it will be the same as the parent class.
 	
-	- _constructorFn_ {function}  
+	- *constructorFn* {function}  
 	Constructor. A function is passed as the first argument, used to initialize the instance using the parent class' constructor. Be sure to call it inside `constructorFn()` (before using `this`).
 	
-	- _returnFn_ {function}  
+	- *returnFn* {function}  
 	Returns a value when the constructor is called without using the 'new' keyword.
 	
-	- _extensions_ {object}  
+	- *extensions* {object}  
 	Additional and overriding properties and methods for the prototype of the class.
 
 **Example**
@@ -75,4 +75,4 @@ s.foo;		//I am a rectangle and a square.
 **Class.noConflict()**  
 Restores `Class` to what it was before this script replaced it, optionally providing a new context.
 
-Class.noConflict([_newContext_])
+Class.noConflict([*newContext*])
