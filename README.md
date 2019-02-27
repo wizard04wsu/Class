@@ -1,7 +1,7 @@
 JavaScript Class Implementation
 =====
 
-This implementation still works in IE 11. Subclasses are created using a class's `extend()` method.
+This implementation still works in IE 11. Subclasses are created using a class' `extend()` method.
 
 =====
 
