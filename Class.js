@@ -53,10 +53,12 @@
 		constructorFn = typeof(options.constructorFn) === "function" ? options.constructorFn : function (Super){ Super.apply(null, [].slice.call(arguments, 1)); };
 		returnFn = typeof(options.returnFn) === "function" ? options.returnFn : function (){};
 
-		function superFn(){ newClass.prototype.constructor.apply(this, arguments); }
-
 		newClass = function Class(){
 			
+			var Protected;
+			
+			function superFn(){ superFn.protected = newClass.prototype.constructor.apply(this, arguments); }
+	
 			if(this && this instanceof newClass && (this.constructor === newClass.prototype.constructor || _initializing)){
 			//A new instance is being created; initialize it.
 			//This condition will be true in these cases:
@@ -71,9 +73,32 @@
 					defineProperty(this, "constructor", newClass, true, false, true);
 				}
 
+				superFn = superFn.bind(this);
+				
+				Protected = {};
+				
+				/**
+				 * Adds a protected getter/setter to this class, allowing a subclass to access a private member of this class via its constructor's first argument (e.g., `Super.protected.parentMember`).
+				 * This does *not* add a protected member to the super-class. (Having this as a method of superFn could be confusing, but I haven't thought of a better way to do it.)
+				 *
+				 * @param {string} name - name of the property
+				 * @param {function} getter
+				 * @param {function} setter
+				 */
+				superFn.addProtected = function addProtected(name, getter, setter){
+					if(name === (void 0) || ""+name === "") throw new TypeError("argument 'name' is required");
+					if(getter !== (void 0) && typeof(getter) !== "function") throw new TypeError("argument 'getter' is not a function");
+					if(getter !== (void 0) && typeof(setter) !== "function") throw new TypeError("argument 'setter' is not a function");
+					if(!getter && !setter) throw new TypeError("argument 'getter' and/or 'setter' is required");
+					
+					Object.defineProperty(Protected, name, { get:getter, set:setter, enumerable:true, configurable:true });
+				};
+				
 				_initializing = true;
-				constructorFn.apply(this, [superFn.bind(this)].concat([].slice.call(arguments)));
+				constructorFn.apply(this, [superFn].concat([].slice.call(arguments)));
 				_initializing = false;
+				
+				return Protected;
 
 			}
 			else{
