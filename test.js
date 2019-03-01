@@ -211,3 +211,85 @@
 	context.Class = Class;
 	
 }).call(this);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var Rectangle = Class.extend({
+	className:"Rectangle",
+	constructorFn:function (Super, width, height){
+		var prot = 1;
+		Super();
+		this.width = Math.abs(width||0);
+		this.height = Math.abs(height||0);
+		Object.defineProperty(this, "area", { get:function (){ return this.width * this.height; }, enumerable:true, configurable:true });
+		this.getProt = function (){ return prot; };
+		this.setProt = function (v){ return prot=v; };
+		Super.addProtectedMember("prot", function(){return prot}, function(v){return prot=v});
+		console.log(Object.getOwnPropertyDescriptors(Super));
+		console.log(Object.getOwnPropertyDescriptors(this));
+	},
+	returnFn:function (width, height){
+		return Math.abs((width||0) * (height||0));
+	},
+	extensions:{
+		foo:"I am a rectangle."
+	}
+});
+
+
+var Square = Rectangle.extend({
+	className:"Square",
+	constructorFn:function (Super, width){
+		Super(width, width);
+		Object.defineProperty(this, "height", { get:function (){ return this.width; }, set:function (val){ return (this.width = Math.abs(val)); }, enumerable:true, configurable:true });
+		//this.prot = Super.prot;
+		Object.defineProperty(this, "prot", { get:function (){ return Super.prot; }, set:function (v){ return Super.prot = v; }, enumerable:true, configurable:true });
+	},
+	returnFn:function (width){
+		return Math.pow(width||0, 2);
+	},
+	extensions:{
+		foo:"I am a rectangle and a square."
+	}
+});
+
+
+var a = console.assert;
+
+
+
+var r = new Rectangle(2, 4);
+
+
+var s = new Square(3);
+
+/*
+a(s.toString() === "[instance of Square]", s.toString());
+a(s.area === 9, s.area);
+s.height = 4;
+a(s.area === 16, s.area);
+a(s.foo === "I am a rectangle and a square.", s.foo);
+a(s.prot === 1, s.prot);
+s.prot = 2;
+a(s.prot === 2, s.prot);
+a(s.getProt(), 2);
+
+
+
+Object.defineProperty(s.constructor, "name", {value:"Test", writable:false, enumerable:false, configurable:true});
+a(s.toString() === "[instance of Test]", s.toString());
+
+Object.defineProperty(s.constructor, "name", {value:"in-val-id", writable:false, enumerable:false, configurable:true});
+a(s.toString() === "[instance of Class]", s.toString());
+*/
