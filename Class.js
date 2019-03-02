@@ -7,9 +7,7 @@
 	var context = this,
 		oldClass = context.Class,
 		extendFn,
-		_initializing = false,
-		instanceBeingInitialized,
-		protectedStack = [];
+		_initializing = false;
 	
 	/*** helper functions ***/
 	
@@ -39,7 +37,7 @@
 	 */
 	extendFn = function extend(options){
 		
-		var emptyFn, newPrototype, name, constructorFn, returnFn, newClass;
+		var constructorFn, returnFn, newClass, emptyFn, newPrototype;
 
 		function classNameIsValid(className){
 		//checks if the specified classname is valid (note: this doesn't check for reserved words)
@@ -57,7 +55,7 @@
 
 		newClass = function Class(){
 			
-			var Protected, superFn;
+			var newInstance, thisIsTheNewInstanceConstructor, superFn, _protected, _protectedOnParentClass;
 			
 			if(this && this instanceof newClass && (this.constructor === newClass.prototype.constructor || _initializing)){
 			//A new instance is being created; initialize it.
@@ -67,54 +65,58 @@
 			//  3) The 'new' operator was used to instantiate a subclass, and the subclass' constructorFn() includes something like `MySuperClass.call(this)`
 			//  4) Possibly if the prototype chain has been screwed with
 
-				if(this.constructor === newClass.prototype.constructor){
+				newInstance = this;
+				
+				if(newInstance.constructor === newClass.prototype.constructor){
 				//this function is the constructor of the new instance (i.e., it's not a parent class' constructor)
 					
-					defineProperty(this, "constructor", newClass, true, false, true);
-					
-					instanceBeingInitialized = this;
+					thisIsTheNewInstanceConstructor = true;
+					defineProperty(newInstance, "constructor", newClass, true, false, true);
 				}
 
-//				superFn = superFn.bind(this);
-				
 				superFn = function (){
-					var protectedOnParentClass = protectedStack.pop();
 					
-					newClass.prototype.constructor.apply(instanceBeingInitialized, arguments);
+					_protectedOnParentClass = newClass.prototype.constructor.apply(newInstance, arguments);
 					
-					for(name in protectedOnParentClass){
-						if(Object.prototype.hasOwnProperty.call(protectedOnParentClass, name)){
-							superFn[name] = protectedOnParentClass[name];
+					//add accessors to the parent class' protected members
+					for(name in _protectedOnParentClass){
+						if(Object.prototype.hasOwnProperty.call(_protectedOnParentClass, name)){
+							Object.defineProperty(superFn, name, { get:_protectedOnParentClass[name].get, set:_protectedOnParentClass[name].set, enumerable:true, configurable:true });
 						}
 					}
 					
 					/**
-					 * Adds a protected getter/setter to this class, allowing a subclass to access a private member of this class via its constructor's first argument (e.g., `Super.protected.parentMember`).
-					 * This does *not* add a protected member to the super-class. (Having this as a method of superFn could be confusing, but I haven't thought of a better way to do it.)
+//					 * Stores a getter and (optionally) a setter, allowing a subclass' constructorFn to access a variable or function that is inside this class' constructorFn.
+					 * This does *not* add a protected member to the parent class. (Having this as a method of superFn is probablyconfusing. TODO: make it less confusing)
 					 *
 					 * @param {string} name
 					 * @param {function} getter
-					 * @param {function} setter
+					 * @param {function} [setter]
 					 */
-					superFn.addProtectedMember = function addProtectedMember(name, getter, setter){
-						if(name === (void 0) || ""+name === "") throw new TypeError("argument 'name' is required");
-						if(getter !== (void 0) && typeof(getter) !== "function") throw new TypeError("argument 'getter' is not a function");
-						if(getter !== (void 0) && typeof(setter) !== "function") throw new TypeError("argument 'setter' is not a function");
-						if(!getter && !setter) throw new TypeError("argument 'getter' and/or 'setter' is required");
-						
-						Object.defineProperty(Protected, name, { get:getter, set:setter, enumerable:true, configurable:true });
-					};
+					Object.defineProperty(superFn, "addProtectedMember", {
+						 value: function addProtectedMember(name, getter, setter){
+							if(name === (void 0) || ""+name === "") throw new TypeError("argument 'name' is required");
+							if(typeof(getter) !== "function") throw new TypeError("argument 'getter' is not a function");
+							if(getter !== (void 0) && typeof(setter) !== "function") throw new TypeError("argument 'setter' is not a function");
+							
+							_protected[name] = {get:getter, set:setter};
+						},
+						writable:false, enumerable:false, configurable:true
+					});
+					
 				}
 		
-				Protected = {};
+				_protected = {};
 				
 				_initializing = true;
-				constructorFn.apply(instanceBeingInitialized, [superFn].concat([].slice.call(arguments)));
+				constructorFn.apply(newInstance, [superFn].concat([].slice.call(arguments)));
 				_initializing = false;
 				
-//				return Protected;
-				protectedStack.push(Protected);
-
+				if(!thisIsTheNewInstanceConstructor){
+				//this function is the constructor of a super-class
+					return _protected;
+				}
+				
 			}
 			else{
 			//the 'new' operator was not used; it was just called as a function
