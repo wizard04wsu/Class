@@ -1,15 +1,16 @@
-JavaScript Class Implementation
-=====
+# JavaScript Class Implementation
 
-This implementation still works in IE 11. Subclasses are created using a class' `extend()` method.
+IE 11 is still in use, so this was made to work in it as well.
 
-=====
+This implementation also allows for classes to be given protected access to items in a super-class.
 
-**Class.extend()**
+---
+
+## Creating subclasses
+
+**<samp style="background-color:transparent">*Class*.extend([*options*])</samp>**
 
 Creates a new class that inherits from the parent class.
-
-*class*.extend([*options*])
 
 Parameters:
 - *options* {object}  
@@ -19,7 +20,7 @@ This can include any of the following:
 	Used as `.name` for the class constructor and in `.toString()` for instances of the class. If not specified, it will be the same as the parent class.
 	
 	- *constructorFn* {function}  
-	Initializes new instances of the class. A function is passed as the first argument, used to initialize the instance using the parent class' constructor. Be sure to call it inside `constructorFn()` (before using `this`).
+	Initializes new instances of the class. A "super" function is passed as the first argument; <a href="#user-content-super">see below.</a>
 	
 	- *returnFn* {function}  
 	Returns a value when the constructor is called without using the 'new' keyword.
@@ -27,7 +28,13 @@ This can include any of the following:
 	- *extensions* {object}  
 	Additional and overriding properties and methods for the prototype of the class.
 
-**Example**
+### <span id="super">The 'Super' function</span>
+
+The first argument of the 'constructorFn' option is a function required to instantiate the class using the parent class' constructor. Basically, it acts like the 'super' keyword in ES6. It should be called as soon as possible inside the constructor, before using the 'this' keyword, to ensure that the object is properly initialized.
+
+**<samp id="super">*options*.*constructorFn*(*Super*[, *arg1*[, ...]])</samp>**
+
+#### Example
 
 ```
 var Rectangle = Class.extend({
@@ -67,12 +74,53 @@ s.area;		//9
 s.height = 4;
 s.area;		//16
 s.foo;		//I am a rectangle and a square.
+
+```
+
+### Protected properties
+
+Additionally, descendant classes can be given protected access to items in a super-class' constructor. This is done by providing getters and setters that are inherited. Once <code>*Super*()</code> is called within the constructor, the protected properties are made available from the <code>*Super*</code> function itself. The function also gains two methods that allow you to add/remove protected access to properties.
+
+**<samp>*Super*.addProtectedMember(*name*, *getter*[, *setter*])</samp>**
+
+Adds a getter and a setter (at least one, if not both) that will only be accessible within the constructors of any descendant classes.
+
+**<samp>*Super*.removeProtectedMember(*name*)</samp>**
+
+Removes a getter/setter so that it is not accessible from any descendants of this class.
+
+#### Example
+
+```
+var Alpha = Class.extend({
+	className:"Alpha",
+	constructorFn:function (Super){
+		var randomInstanceID;
+		Super();
+		randomInstanceID = Math.random();
+		Super.addProtectedMember("rando", function(){return randomInstanceID});
+	}
+});
+
+var Bravo = Alpha.extend({
+	className:"Bravo",
+	constructorFn:function (Super){
+		Super();
+		this.foo = "My ID is "+Super.rando;
+	}
+});
+
+var b = new Bravo();
+
+b.foo;		//My ID is ...
+
 ```
 
 
-=====
+---
 
-**Class.noConflict()**  
-Restores `Class` to what it was before this script replaced it, optionally providing a new context.
+## Avoid conflicts between scripts
 
-Class.noConflict([*newContext*])
+**<samp>Class.noConflict()</samp>**
+
+Restores `Class` to what it was before this script replaced it. The return value is this implementation of Class, so it can be assigned to another variable.
