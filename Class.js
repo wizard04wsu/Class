@@ -4,9 +4,8 @@
 	
 	"use strict";
 	
-	var context = this,
+	let context = this,
 		oldClass = context.Class,
-		extendFn,
 		_initializing = false;
 	
 	/*** helper functions ***/
@@ -35,27 +34,23 @@
 	 * @param {object} [options.extensions] - Additional and overriding properties and methods for the prototype of the class.
 	 * @return {function} - The new class.
 	 */
-	extendFn = function extend(options){
+	let extendFn = function extend(options){
 		
-		var constructorFn, returnFn, newClass, emptyFn, newPrototype;
+		if(options === void 0) options = {};
+		else if(isPrimitive(options)) throw new TypeError("argument 'options' is not an object");
+
 
 		function classNameIsValid(className){
 		//checks if the specified classname is valid (note: this doesn't check for reserved words)
 			return className !== (void 0) && /^[a-z_$][a-z0-9_$]*$/i.test(className);
 		}
 		
-		if(options === void 0) options = {};
-		else if(isPrimitive(options)) throw new TypeError("argument 'options' is not an object");
-
-
 		/*** create the new constructor ***/
 
-		constructorFn = typeof(options.constructorFn) === "function" ? options.constructorFn : function (Super){ Super.apply(null, [].slice.call(arguments, 1)); };
-		returnFn = typeof(options.returnFn) === "function" ? options.returnFn : function (){};
+		let constructorFn = typeof(options.constructorFn) === "function" ? options.constructorFn : function (Super){ Super.apply(null, [].slice.call(arguments, 1)); };
+		let returnFn = typeof(options.returnFn) === "function" ? options.returnFn : function (){};
 
-		newClass = function Class(){
-			
-			var newInstance, thisIsTheNewInstanceConstructor, superFn, _protected;
+		let newClass = function Class(){
 			
 			if(this && this instanceof newClass && (this.constructor === newClass.prototype.constructor || _initializing)){
 			//A new instance is being created; initialize it.
@@ -65,7 +60,9 @@
 			//  3) The 'new' operator was used to instantiate a subclass, and the subclass' constructorFn() includes something like `MySuperClass.call(this)`
 			//  4) Possibly if the prototype chain has been screwed with
 
-				newInstance = this;
+				let newInstance = this,
+					thisIsTheNewInstanceConstructor,
+					_protected;
 				
 				if(newInstance.constructor === newClass.prototype.constructor){
 				//this function is the constructor of the new instance (i.e., it's not a parent class' constructor)
@@ -74,7 +71,7 @@
 					defineProperty(newInstance, "constructor", newClass, true, false, true);
 				}
 
-				superFn = function (){
+				let superFn = function (){
 					
 					_protected = newClass.prototype.constructor.apply(newInstance, arguments) || {};
 					
@@ -160,9 +157,9 @@
 
 		//An uninitialized instance of the parent class will be the prototype of the new class.
 		//To create an instance without initializing it, we'll temporarily use an empty function as the constructor.
-		emptyFn = function (){};
+		let emptyFn = function (){};
 		emptyFn.prototype = this.prototype;
-		newPrototype = new emptyFn();
+		let newPrototype = new emptyFn();
 		defineProperty(newPrototype, "constructor", this, true, false, true);
 		
 		//override .toString()
