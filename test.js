@@ -219,3 +219,100 @@
 	context.Class = Class;
 	
 }).call(window);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var Rectangle = Class.extend({
+	className:"Rectangle",
+	constructorFn:function (Super, width, height){
+		var prot = 1;
+		Super();
+		this.width = Math.abs(width||0);
+		this.height = Math.abs(height||0);
+		Object.defineProperty(this, "area", { get:function (){ return this.width * this.height; }, enumerable:true, configurable:true });
+		this.getProt = function (){ return prot; };
+		this.setProt = function (v){ return prot=v; };
+		Super.addProtectedMember("prot", function(){return prot}, function(v){prot=v});
+//		console.log(Object.getOwnPropertyDescriptors(Super));
+//		console.log(Object.getOwnPropertyDescriptors(this));
+	},
+	returnFn:function (width, height){
+		console.log("returnFn");
+		return Math.abs((width||0) * (height||0));
+	},
+	extensions:{
+		foo:"I am a rectangle."
+	}
+});
+
+
+var Square = Rectangle.extend({
+	className:"Square",
+	constructorFn:function (Super, width){
+		Super(width, width);
+		Object.defineProperty(this, "height", { get:function (){ return this.width; }, set:function (val){ this.width = Math.abs(val); }, enumerable:true, configurable:true });
+		//this.prot = Super.prot;
+		Object.defineProperty(this, "prot2", { get:function (){ return Super.prot; }, set:function (v){ Super.prot = v; }, enumerable:true, configurable:true });
+		Super.removeProtectedMember("prot");
+//		console.log(Object.getOwnPropertyDescriptors(Super));
+//		console.log(Object.getOwnPropertyDescriptors(this));
+	},
+	returnFn:function (width){
+		return Math.pow(width||0, 2);
+	},
+	extensions:{
+		foo:"I am a rectangle and a square."
+	}
+});
+
+
+var a = console.assert;
+
+
+
+var r = new Rectangle(2, 4);
+
+
+var s = new Square(3);
+
+
+a(s.toString() === "[instance of Square]", s.toString());
+a(s.area === 9, s.area);
+s.height = 4;
+a(s.area === 16, s.area);
+a(s.foo === "I am a rectangle and a square.", s.foo);
+a(s.prot2 === 1, s.prot2);
+s.prot2 = 2;
+a(s.prot2 === 2, s.prot2);
+a(s.getProt(), 2);
+
+
+
+Object.defineProperty(s.constructor, "name", {value:"Test", writable:false, enumerable:false, configurable:true});
+a(s.toString() === "[instance of Test]", s.toString());
+
+Object.defineProperty(s.constructor, "name", {value:"in-val-id", writable:false, enumerable:false, configurable:true});
+a(s.toString() === "[instance of Class]", s.toString());
+
+
+
+var Test = Square.extend({className:"Test", constructorFn:function(Super){Super();console.log("in Test, Super.prot == ", Super.prot);}});
+var t = new Test();
+a(t.prot === void 0, "public: "+t.prot);
+
