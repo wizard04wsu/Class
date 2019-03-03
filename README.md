@@ -30,7 +30,7 @@ This can include any of the following:
 
 ### <span id="super">The 'Super' function</span>
 
-The first argument of the 'constructorFn' option is a function required to instantiate the class using the parent class' constructor. Basically, it acts like the 'super' keyword in ES6. It should be called as soon as possible inside the constructor, before using the 'this' keyword, to ensure that the object is properly initialized.
+The first argument of the 'constructorFn' option is a function required to instantiate the class using the parent class' constructor. Basically, it acts like the 'super' keyword in ES6. It should be called as soon as possible inside the constructor, before using the 'this' keyword, to ensure that the instance is properly initialized.
 
 **<samp id="super">*options*.*constructorFn*(*Super*[, *arg1*[, ...]])</samp>**
 
