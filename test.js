@@ -86,17 +86,18 @@
 					}
 					
 					/**
-					 * Stores a getter and (optionally) a setter, allowing a subclass' constructorFn to access a variable or function that is inside this class' constructorFn.
+					 * Stores a getter and a setter (at least one, if not both), allowing a subclass' constructorFn to access a variable or function that is inside this class' constructorFn.
 					 *
 					 * @param {string} name
-					 * @param {function} getter
+					 * @param {function} [getter]
 					 * @param {function} [setter]
 					 */
 					Object.defineProperty(superFn, "addProtectedMember", {
 						 value: function addProtectedMember(name, getter, setter){
 							if(name === (void 0) || ""+name === "") throw new TypeError("argument 'name' is required");
-							if(typeof(getter) !== "function") throw new TypeError("argument 'getter' is not a function");
+							if(getter !== (void 0) && typeof(getter) !== "function") throw new TypeError("argument 'getter' is not a function");
 							if(getter !== (void 0) && typeof(setter) !== "function") throw new TypeError("argument 'setter' is not a function");
+							if(!getter && !setter) return;
 							
 							_protected[name] = {get:getter, set:setter};
 						},
@@ -204,6 +205,9 @@
 	 * @return {function} - The base Class constructor.
 	 */
 	function noConflict(newContext){
+		
+		if(isPrimitive(newContext)) throw new TypeError("argument 'newContext' is not an object");
+		
 		if(context){
 			context.Class = oldClass;
 		}
@@ -216,6 +220,7 @@
 		context = newContext;
 		
 		return this;
+		
 	}
 	//make noConflict() a static method of Class
 	defineProperty(Class, "noConflict", noConflict, true, false, true);
@@ -224,7 +229,7 @@
 	
 	context.Class = Class;
 	
-}).call(this);
+}).call(window);
 
 
 
