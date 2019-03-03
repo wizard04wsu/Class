@@ -30,7 +30,7 @@
 	 * 
 	 * @param {object} [options]
 	 * @param {string} [options.className] - Used as .name for the class function and in .toString() for instances of the class.
-	 * @param {function} [options.constructorFn] - Initializes new instances of the class. A function is passed as the first argument, used to initialize the instance using the parent class' constructor; be sure to call it inside constructorFn (before using `this`).
+	 * @param {function} [options.constructorFn] - Initializes new instances of the class. A function is passed as the first argument, used to initialize the instance using the parent class' constructor; be sure to call it inside constructorFn (before using `this` or protected members).
 	 * @param {function} [options.returnFn] - Returns a value when the constructor is called without using the 'new' keyword.
 	 * @param {object} [options.extensions] - Additional and overriding properties and methods for the prototype of the class.
 	 * @return {function} - The new class.
@@ -55,7 +55,7 @@
 
 		newClass = function Class(){
 			
-			var newInstance, thisIsTheNewInstanceConstructor, superFn, _protected, _protectedOnParentClass;
+			var newInstance, thisIsTheNewInstanceConstructor, superFn, _protected;
 			
 			if(this && this instanceof newClass && (this.constructor === newClass.prototype.constructor || _initializing)){
 			//A new instance is being created; initialize it.
@@ -76,18 +76,17 @@
 
 				superFn = function (){
 					
-					_protectedOnParentClass = newClass.prototype.constructor.apply(newInstance, arguments);
+					_protected = newClass.prototype.constructor.apply(newInstance, arguments) || {};
 					
-					//add accessors to the parent class' protected members
-					for(name in _protectedOnParentClass){
-						if(Object.prototype.hasOwnProperty.call(_protectedOnParentClass, name)){
-							Object.defineProperty(superFn, name, { get:_protectedOnParentClass[name].get, set:_protectedOnParentClass[name].set, enumerable:true, configurable:true });
+					//add the protected getters/setters to superFn
+					for(name in _protected){
+						if(Object.prototype.hasOwnProperty.call(_protected, name)){
+							Object.defineProperty(superFn, name, { get:_protected[name].get, set:_protected[name].set, enumerable:true, configurable:true });
 						}
 					}
 					
 					/**
-//					 * Stores a getter and (optionally) a setter, allowing a subclass' constructorFn to access a variable or function that is inside this class' constructorFn.
-					 * This does *not* add a protected member to the parent class. (Having this as a method of superFn is probablyconfusing. TODO: make it less confusing)
+					 * Stores a getter and (optionally) a setter, allowing a subclass' constructorFn to access a variable or function that is inside this class' constructorFn.
 					 *
 					 * @param {string} name
 					 * @param {function} getter
@@ -104,10 +103,22 @@
 						writable:false, enumerable:false, configurable:true
 					});
 					
+					/**
+					 * Removes a stored getter & setter, preventing a subclass' constructorFn from accessing the (now private) member.
+					 *
+					 * @param {string} name
+					 */
+					Object.defineProperty(superFn, "removeProtectedMember", {
+						 value: function addProtectedMember(name){
+							if(name === (void 0) || ""+name === "") throw new TypeError("argument 'name' is required");
+							
+							delete _protected[name];
+						},
+						writable:false, enumerable:false, configurable:true
+					});
+					
 				}
 		
-				_protected = {};
-				
 				_initializing = true;
 				constructorFn.apply(newInstance, [superFn].concat([].slice.call(arguments)));
 				_initializing = false;
@@ -116,6 +127,7 @@
 				//this function is the constructor of a super-class
 					return _protected;
 				}
+				//else return this
 				
 			}
 			else{
