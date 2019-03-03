@@ -199,27 +199,16 @@
 	
 	
 	/**
-	 * Restores 'Class' to what it was before this script replaced it, optionally providing a new context
+	 * Restores 'Class' to what it was before this script replaced it.
 	 * 
-	 * @param {object} [newContext] - If provided, adds 'Class' to that object.
 	 * @return {function} - The base Class constructor.
 	 */
-	function noConflict(newContext){
+	function noConflict(){
 		
-		if(isPrimitive(newContext)) throw new TypeError("argument 'newContext' is not an object");
+		if(context) context.Class = oldClass;
+		context = null;
 		
-		if(context){
-			context.Class = oldClass;
-		}
-		
-		if(newContext){
-			oldClass = newContext.Class;
-			newContext.Class = this;
-		}
-		
-		context = newContext;
-		
-		return this;
+		return Class;
 		
 	}
 	//make noConflict() a static method of Class
