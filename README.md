@@ -37,7 +37,7 @@ The first argument of the 'constructorFn' option is a function required to insta
 #### Example
 
 ```
-var Rectangle = Class.extend({
+let Rectangle = Class.extend({
 	className:"Rectangle",
 	constructorFn:function (Super, width, height){
 		Super();
@@ -53,7 +53,7 @@ var Rectangle = Class.extend({
 	}
 });
 
-var Square = Rectangle.extend({
+let Square = Rectangle.extend({
 	className:"Square",
 	constructorFn:function (Super, width){
 		Super(width, width);
@@ -67,7 +67,7 @@ var Square = Rectangle.extend({
 	}
 });
 
-var s = new Square(3);
+let s = new Square(3);
 
 s.toString();	//[instance of Square]
 s.area;		//9
@@ -79,7 +79,7 @@ s.foo;		//I am a rectangle and a square.
 
 ### Protected properties
 
-Additionally, descendant classes can be given protected access to items in a super-class' constructor. This is done by providing getters and setters that are inherited. Once <code>*Super*()</code> is called within the constructor, the protected properties are made available from the <code>*Super*</code> function itself. The function also gains two methods that allow you to add/remove protected access to properties.
+Additionally, descendant classes can be given protected access to items in a super-class' constructor. This is done by providing getters and setters that are inherited. Once <code>*Super*()</code> is called within the constructor, the protected properties are made available as static properties of <code>*Super*</code>. The function also gains two methods that allow you to add/remove protected access to properties.
 
 **<samp>*Super*.addProtectedMember(*name*, *getter*[, *setter*])</samp>**
 
@@ -92,17 +92,16 @@ Removes a getter/setter so that it is not accessible from any descendants of thi
 #### Example
 
 ```
-var Alpha = Class.extend({
+let Alpha = Class.extend({
 	className:"Alpha",
 	constructorFn:function (Super){
-		var randomInstanceID;
 		Super();
-		randomInstanceID = Math.random();
+		let randomInstanceID = Math.random();
 		Super.addProtectedMember("rando", function(){return randomInstanceID});
 	}
 });
 
-var Bravo = Alpha.extend({
+let Bravo = Alpha.extend({
 	className:"Bravo",
 	constructorFn:function (Super){
 		Super();
@@ -110,7 +109,7 @@ var Bravo = Alpha.extend({
 	}
 });
 
-var b = new Bravo();
+let b = new Bravo();
 
 b.foo;		//My ID is ...
 
