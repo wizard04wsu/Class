@@ -122,7 +122,8 @@
 				}
 		
 				_initializing = true;
-				constructorFn.apply(newInstance, [superFn].concat([].slice.call(arguments)));
+				//constructorFn.apply(newInstance, [superFn].concat([].slice.call(arguments)));
+				constructorFn.bind(newInstance, superFn).apply(null, arguments);
 				_initializing = false;
 				
 				if(!thisIsTheNewInstanceConstructor){
