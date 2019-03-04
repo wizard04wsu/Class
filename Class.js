@@ -14,6 +14,12 @@
 		Object.defineProperty(object, propertyName, { value:value, writable:!!isWritable, enumerable:!!isEnumerable, configurable:!!isConfigurable });
 	}
 	function isPrimitive(o){ var t; return o===t || o===null || (t = typeof o)==="number" || t==="string" || t==="boolean"; }
+	function warn(msg){
+		if(window.console){
+			if(typeof window.console.warn === "function") window.console.warn(msg);
+			else if(typeof window.console.log === "function") window.console.log(msg);
+		}
+	}
 	
 	/*** base class ***/
 	
@@ -61,17 +67,21 @@
 			//  4) Possibly if the prototype chain has been screwed with
 
 				let newInstance = this,
-					thisIsTheNewInstanceConstructor,
-					_protected;
-				
+					className = newClass.name,
+					_protected,
+					superFn,
+					superFnCalled;
+
 				if(newInstance.constructor === newClass.prototype.constructor){
 				//this function is the constructor of the new instance (i.e., it's not a parent class' constructor)
 					
-					thisIsTheNewInstanceConstructor = true;
 					defineProperty(newInstance, "constructor", newClass, true, false, true);
 				}
 
-				let superFn = function (){
+				superFn = function (){
+					
+					if(superFnCalled) return;	//don't initialize it more than once
+					superFnCalled = true;
 					
 					_protected = newClass.prototype.constructor.apply(newInstance, arguments) || {};
 					
@@ -126,8 +136,11 @@
 				constructorFn.bind(newInstance, superFn).apply(null, arguments);
 				_initializing = false;
 				
-				if(!thisIsTheNewInstanceConstructor){
+				if(!superFnCalled) warn(className+" constructor does not include a call to the 'Super' argument");
+				
+				if(newInstance.constructor !== newClass){
 				//this function is the constructor of a super-class
+					
 					return _protected;
 				}
 				//else return this
