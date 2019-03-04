@@ -78,7 +78,11 @@
 					//add the protected getters/setters to superFn
 					for(name in _protected){
 						if(Object.prototype.hasOwnProperty.call(_protected, name)){
-							Object.defineProperty(superFn, name, { get:_protected[name].get, set:_protected[name].set, enumerable:true, configurable:true });
+							Object.defineProperty(superFn, name, {
+								get:(_protected[name].get ? _protected[name].get.bind(newInstance) : void 0),
+								set:(_protected[name].set ? _protected[name].set.bind(newInstance) : void 0),
+								enumerable:true, configurable:true
+							});
 						}
 					}
 					
@@ -93,7 +97,7 @@
 						 value: function addProtectedMember(name, getter, setter){
 							if(name === (void 0) || ""+name === "") throw new TypeError("argument 'name' is required");
 							if(getter !== (void 0) && typeof(getter) !== "function") throw new TypeError("argument 'getter' is not a function");
-							if(getter !== (void 0) && typeof(setter) !== "function") throw new TypeError("argument 'setter' is not a function");
+							if(setter !== (void 0) && typeof(setter) !== "function") throw new TypeError("argument 'setter' is not a function");
 							if(!getter && !setter) return;
 							
 							_protected[name] = {get:getter, set:setter};
