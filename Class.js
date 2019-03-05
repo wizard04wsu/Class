@@ -219,12 +219,9 @@
 	 * @return {function} - The base Class constructor.
 	 */
 	function noConflict(){
-		
-		if(context) context.Class = oldClass;
-		context = null;
-		
+		context.Class = oldClass;
+		delete Class.noConflict;
 		return Class;
-		
 	}
 	//make noConflict() a static method of Class
 	defineProperty(Class, "noConflict", noConflict, true, false, true);
