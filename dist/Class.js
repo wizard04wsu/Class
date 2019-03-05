@@ -1,4 +1,4 @@
-//This still works in IE 11.
+//https://github.com/wizard04wsu/Class
 
 (function (){
 	
