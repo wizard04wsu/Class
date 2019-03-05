@@ -41,9 +41,9 @@ let Rectangle = Class.extend({
 	className:"Rectangle",
 	constructorFn:function (Super, width, height){
 		Super();
-		this.width = Math.abs(width||0);
-		this.height = Math.abs(height||0);
-		Object.defineProperty(this, "area", { get:function (){ return this.width * this.height; }, enumerable:true, configurable:true });
+		this.width = width||0;
+		this.height = height||0;
+		Object.defineProperty(this, "area", { get:function (){ return Math.abs(this.width * this.height); }, enumerable:true, configurable:true });
 	},
 	returnFn:function (width, height){
 		return Math.abs((width||0) * (height||0));
@@ -57,7 +57,7 @@ let Square = Rectangle.extend({
 	className:"Square",
 	constructorFn:function (Super, width){
 		Super(width, width);
-		Object.defineProperty(this, "height", { get:function (){ return this.width; }, set:function (val){ return (this.width = Math.abs(val)); }, enumerable:true, configurable:true });
+		Object.defineProperty(this, "height", { get:function (){ return this.width; }, set:function (val){ this.height = this.width = val; }, enumerable:true, configurable:true });
 	},
 	returnFn:function (width){
 		return Math.pow(width||0, 2);
