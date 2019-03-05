@@ -1,0 +1,238 @@
+<html><head><title>Class testing</title>
+<script src="Class.js"></script><script>
+
+	let C, c, c0, D, d, E, e;
+	
+	//create a class without adding anything new to it
+	console.groupCollapsed("empty class");
+		console.group("C class");
+		C = Class.extend();
+		console.dir(C);
+		console.assert(C.name === "Class", C.name);	//function's .name property is the class name
+		console.assert(C.extend === Class.extend, C.extend);	//.extend() is inherited (copied to new class)
+		console.assert(C.toString() === "function Class() { [custom code] }", C.toString());	//.toString() output
+		console.groupEnd();
+
+		console.group("C instance");
+		c = new C();
+		console.dir(c);
+		console.assert(c.constructor === C, c.constructor);	//the C class is the constructor of the instance
+		console.assert(c.toString() === "[instance of Class]", c.toString());	//.toString() output
+		console.groupEnd();
+	console.groupEnd();
+
+	//create a class with a custom class name
+	console.groupCollapsed("class name");
+		console.group("C class");
+		C = Class.extend({className:"C"});
+		console.dir(C);
+		console.assert(C.name === "C", C.name);	//class name is 'C'
+		console.assert(C.toString() === "function Class() { [custom code] }", C.toString());	//.toString() output
+		console.groupEnd();
+
+		console.group("C instance");
+		c = new C();
+		console.dir(c);
+		console.assert(c.toString() === "[instance of C]", c.toString());	//.toString() output
+		console.groupEnd();
+	console.groupEnd();
+
+	//create a class, specifying an invalid class name
+	console.groupCollapsed("invalid class name");
+		console.group("C class");
+		C = Class.extend({className:"5"});
+		console.dir(C);
+		console.assert(C.name === "Class", C.name);	//class name is inherited (copied to new class)
+		console.groupEnd();
+
+		console.group("C instance");
+		c = new C();
+		console.dir(c);
+		console.assert(c.toString() === "[instance of Class]", c.toString());	//.toString() output
+		console.groupEnd();
+	console.groupEnd();
+
+	//specify returnFn() in case class is called without the 'new' keyword
+	console.groupCollapsed("return function");
+		console.group("C class");
+		C = Class.extend({className:"C",
+			returnFn:function (){return "foo"},
+			extensions:{
+				bar:function (){return "bar"},
+				baz:function (){return this.bar()}
+			}
+		});
+		console.dir(C);
+		console.groupEnd();
+
+		console.group("C call");
+		c0 = C();
+		console.dir(c0);
+		console.assert(c0 === "foo", c0);	//returns output of returnFn()
+		console.assert(c0.bar === void 0, c0.bar);	//.bar() is not added to the instance
+		console.assert(c0.baz === void 0, c0.baz);	//.baz() is not added to the instance
+		console.groupEnd();
+
+		console.group("C instance");
+		c = new C();
+		console.dir(c);
+		console.assert(c.bar() === "bar", c.bar());	//.bar() returns 'bar'
+		console.assert(c.baz() === "bar", c.baz());	//.baz() returns 'bar'
+		console.groupEnd();
+	console.groupEnd();
+
+	//use 'this' keyword inside of returnFn()
+	console.groupCollapsed("return function using 'this'");
+		console.group("C class");
+		C = Class.extend({className:"C",
+			returnFn:function (){return this.foo},
+			extensions:{
+				foo:function (){return "foo"}
+			}
+		});
+		console.dir(C);
+		console.groupEnd();
+
+		console.group("C call");
+		c0 = C();
+		console.dir(c0);
+		console.assert(c0 === window.foo, c0);	//'this' refers to the window, not an instance of the class
+		console.groupEnd();
+	console.groupEnd();
+	
+	//don't call Super() within the D class' constructorFn()
+	console.groupCollapsed("subclass constructor without 'Super()'");
+		console.group("C class");
+		C = Class.extend({className:"C",
+			constructorFn:function(Super){Super();this.foo = "foo"}
+		});
+		console.dir(C);
+		console.groupEnd();
+
+		console.group("D class");
+		D = Class.extend({className:"D",
+			constructorFn:function(Super){}
+		});
+		console.dir(D);
+		console.groupEnd();
+
+		console.group("D instance");
+		d = new D();	//logs a warning to the console from the D constructor
+		console.info("^^^ should have gotten a warning about 'Super'");
+		console.dir(d);
+		console.assert(d.foo === void 0, d.foo);	//.foo was not added to the instance via the super class constructor
+		console.groupEnd();
+	console.groupEnd();
+	
+	//don't call Super() within the C class' constructorFn()
+	console.groupCollapsed("super-class constructor without 'Super()'");
+		console.group("C class");
+		C = Class.extend({className:"C",
+			constructorFn:function(Super){this.foo = "foo"}
+		});
+		console.dir(C);
+		console.groupEnd();
+
+		console.group("D class");
+		D = C.extend({className:"D",
+			constructorFn:function(Super){Super()}
+		});
+		console.dir(D);
+		console.groupEnd();
+
+		console.group("D instance");
+		d = new D();	//logs a warning to the console from the C constructor
+		console.info("^^^ should have gotten a warning about 'Super'");
+		console.dir(d);
+		console.assert(d.foo === "foo", d.foo);	//.foo was added to the instance via the super class constructor
+		console.groupEnd();
+	console.groupEnd();
+	
+	//call Super() inside all the constructor functions
+	console.groupCollapsed("constructors with 'Super()'");
+		console.group("C class");
+		C = Class.extend({className:"C",
+			constructorFn:function(Super){Super();this.foo = "foo"}
+		});
+		console.dir(C);
+		console.groupEnd();
+
+		console.group("D class");
+		D = C.extend({className:"D",
+			constructorFn:function(Super){Super()}
+		});
+		console.dir(D);
+		console.groupEnd();
+
+		console.group("D instance");
+		d = new D();
+		console.dir(d);
+		console.assert(d.foo === "foo", d.foo);	//.foo was added to the instance via the super class constructor
+		console.groupEnd();
+	console.groupEnd();
+	
+	//protected properties
+	console.groupCollapsed("protected properties");
+		console.group("C class");
+		C = Class.extend({className:"C",
+			constructorFn:function(Super){
+				Super();
+				let foo="bar";
+				this.bop = function (){return foo};
+				Super.addProtectedMember("foo", function (){return foo}, function(v){foo=v});	//subclasses of C will have access to the 'foo' variable
+			}
+		});
+		console.dir(C);
+		console.groupEnd();
+
+		console.group("D class");
+		D = C.extend({className:"D",
+			constructorFn:function(Super){
+				Super();
+				Super.removeProtectedMember("foo");	//subclasses of D will not have access to the protected property
+				console.assert(Super.foo === "bar", Super.foo);	//D constructor has access to the protected property
+				Super.foo = "baz";
+				console.assert(Super.foo === "baz", Super.foo);	//protected property can be changed via the D constructor
+				console.assert(this.bop() === "baz", this.bop()); //confirms that the value in the C constructor's variable is what changed
+			}
+		});
+		console.dir(D);
+		console.groupEnd();
+
+		console.group("D instance");
+		d = new D();
+		console.dir(d);
+		console.assert(d.foo === void 0, d.foo);	//instance doesn't have access to the protected property
+		console.assert(d.bop() === "baz", d.bop());	//instance's constructor-created method does have access to the protected property
+		console.groupEnd();
+
+		console.group("E class");
+		E = D.extend({className:"E",
+			constructorFn:function(Super){
+				Super();
+				console.assert(Super.foo === void 0, Super.foo);	//class E doesn't have access to the protected property
+				console.assert(this.bop() === "baz", this.bop());	//inherited function still has access
+			}
+		});
+		console.dir(E);
+		console.groupEnd();
+
+		console.group("E instance");
+		e = new E();
+		console.dir(e);
+		console.assert(e.bop() === "baz", e.bop());	//inherited function still has access
+		console.groupEnd();
+	console.groupEnd();
+	
+	//Class.noConflict()
+	console.groupCollapsed("noConflict");
+		console.dir(Class);
+		console.assert(Object.getOwnPropertyDescriptor(Class, "noConflict").enumerable === false, Object.getOwnPropertyDescriptor(Class, "noConflict").enumerable);
+		C = Class.noConflict();
+		console.assert(Class === void 0, Class);
+		console.dir(C);
+		console.assert(Object.getOwnPropertyDescriptor(C, "noConflict") === void 0, Object.getOwnPropertyDescriptor(C, "noConflict"));
+		console.assert(C.noConflict === void 0, C.noConflict);
+	console.groupEnd();
+	
+</script></head><body></body></html>
