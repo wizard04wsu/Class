@@ -220,6 +220,7 @@
 	 */
 	function noConflict(){
 		context.Class = oldClass;
+		context = null;
 		delete Class.noConflict;
 		return Class;
 	}
