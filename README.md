@@ -57,7 +57,7 @@ let Square = Rectangle.extend({
 	className:"Square",
 	constructorFn:function (Super, width){
 		Super(width, width);
-		Object.defineProperty(this, "height", { get:function (){ return this.width; }, set:function (val){ this.height = this.width = val; }, enumerable:true, configurable:true });
+		Object.defineProperty(this, "height", { get:function (){ return this.width; }, set:function (val){ this.height = this.width = val||0; }, enumerable:true, configurable:true });
 	},
 	returnFn:function (width){
 		return Math.pow(width||0, 2);
