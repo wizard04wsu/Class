@@ -1,12 +1,10 @@
-//https://github.com/wizard04wsu/Class
+//This still works in IE 11.
 
 (function (){
 	
 	"use strict";
 	
-	let context = this,
-		oldClass = context.Class,
-		_initializing = false;
+	let _initializing = false;
 	
 	/*** helper functions ***/
 	
@@ -103,31 +101,29 @@
 					 * @param {function} [getter]
 					 * @param {function} [setter]
 					 */
-					Object.defineProperty(superFn, "addProtectedMember", {
-						 value: function addProtectedMember(name, getter, setter){
+					defineProperty(superFn, "addProtectedMember",
+						function addProtectedMember(name, getter, setter){
 							if(name === (void 0) || ""+name === "") throw new TypeError("argument 'name' is required");
 							if(getter !== (void 0) && typeof(getter) !== "function") throw new TypeError("argument 'getter' is not a function");
 							if(setter !== (void 0) && typeof(setter) !== "function") throw new TypeError("argument 'setter' is not a function");
 							if(!getter && !setter) return;
-							
+
 							_protected[name] = {get:getter, set:setter};
 						},
-						writable:false, enumerable:false, configurable:true
-					});
+						false, false, true);
 					
 					/**
 					 * Removes a stored getter & setter, preventing a subclass' constructorFn from accessing the (now private) member.
 					 *
 					 * @param {string} name
 					 */
-					Object.defineProperty(superFn, "removeProtectedMember", {
-						 value: function addProtectedMember(name){
+					defineProperty(superFn, "removeProtectedMember",
+						function addProtectedMember(name){
 							if(name === (void 0) || ""+name === "") throw new TypeError("argument 'name' is required");
 							
 							delete _protected[name];
 						},
-						writable:false, enumerable:false, configurable:true
-					});
+						false, false, true);
 					
 				}
 		
@@ -212,6 +208,9 @@
 	defineProperty(Class, "extend", extendFn, true, false, true);
 	
 	
+	
+	let context = this,
+		oldClass = context.Class;
 	
 	/**
 	 * Restores 'Class' to what it was before this script replaced it.
