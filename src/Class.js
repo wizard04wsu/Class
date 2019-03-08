@@ -1,4 +1,4 @@
-//This still works in IE 11.
+// https://github.com/wizard04wsu/Class
 
 (function (){
 	
@@ -19,13 +19,29 @@
 		}
 	}
 	
+	function classNameIsValid(className){
+	//checks if the specified classname is valid (note: this doesn't check for reserved words)
+		return className !== (void 0) && /^[a-z_$][a-z0-9_$]*$/i.test(className);
+	}
+	
+	/*** shared functions ***/
+	
+	function _constructorFn(Super){ Super.apply(null, [].slice.call(arguments, 1)); }
+	function _emptyFn(){}
+	let _classToString = function toString(){ return "function Class() { [custom code] }"; };
+	let _instanceToString = function toString(){
+		if(classNameIsValid(this.constructor.name)) return "[instance of "+this.constructor.name+"]";
+		return "[instance of Class]";
+	};
+	let _extendToString = function toString(){ return "function extend() { [custom code] }"; };
+
 	/*** base class ***/
 	
 	//the base Class constructor; it will have two static methods, 'extend' and 'noConflict'
 	function Class(){}
 	
-	defineProperty(Class.prototype, "toString", function toString(){ return "[instance of Class]"; }, true, false, true);
-	defineProperty(Class, "toString", function toString(){ return "function Class() { [custom code] }"; }, true, false, true);
+	defineProperty(Class.prototype, "toString", _instanceToString, true, false, true);
+	defineProperty(Class, "toString", _classToString, true, false, true);
 	
 	
 	/**
@@ -44,15 +60,10 @@
 		else if(isPrimitive(options)) throw new TypeError("argument 'options' is not an object");
 
 
-		function classNameIsValid(className){
-		//checks if the specified classname is valid (note: this doesn't check for reserved words)
-			return className !== (void 0) && /^[a-z_$][a-z0-9_$]*$/i.test(className);
-		}
-		
 		/*** create the new constructor ***/
 
-		let constructorFn = typeof(options.constructorFn) === "function" ? options.constructorFn : function (Super){ Super.apply(null, [].slice.call(arguments, 1)); };
-		let returnFn = typeof(options.returnFn) === "function" ? options.returnFn : function (){};
+		let constructorFn = typeof(options.constructorFn) === "function" ? options.constructorFn : _constructorFn;
+		let returnFn = typeof(options.returnFn) === "function" ? options.returnFn : _emptyFn;
 
 		let newClass = function Class(){
 			
@@ -64,11 +75,7 @@
 			//  3) The 'new' operator was used to instantiate a subclass, and the subclass' constructorFn() includes something like `MySuperClass.call(this)`
 			//  4) Possibly if the prototype chain has been screwed with
 
-				let newInstance = this,
-					className = newClass.name,
-					_protected,
-					superFn,
-					superFnCalled;
+				let newInstance = this;
 
 				if(newInstance.constructor === newClass.prototype.constructor){
 				//this function is the constructor of the new instance (i.e., it's not a parent class' constructor)
@@ -76,11 +83,14 @@
 					defineProperty(newInstance, "constructor", newClass, true, false, true);
 				}
 
-				superFn = function (){
+				let _protected,
+					superFnCalled = false;
+				let superFn = function Super(){
 					
 					if(superFnCalled) return;	//don't initialize it more than once
 					superFnCalled = true;
 					
+					//initialize the instance using the parent class
 					_protected = newClass.prototype.constructor.apply(newInstance, arguments) || {};
 					
 					//add the protected getters/setters to superFn
@@ -118,7 +128,7 @@
 					 * @param {string} name
 					 */
 					defineProperty(superFn, "removeProtectedMember",
-						function addProtectedMember(name){
+						function removeProtectedMember(name){
 							if(name === (void 0) || ""+name === "") throw new TypeError("argument 'name' is required");
 							
 							delete _protected[name];
@@ -127,11 +137,13 @@
 					
 				}
 		
+				//construct the new instance
 				_initializing = true;
 				//constructorFn.apply(newInstance, [superFn].concat([].slice.call(arguments)));
 				constructorFn.bind(newInstance, superFn).apply(null, arguments);
 				_initializing = false;
 				
+				let className = newClass.name;	//store it in case the constructor changes the .name attribute
 				if(!superFnCalled) warn(className+" constructor does not include a call to the 'Super' argument");
 				
 				if(newInstance.constructor !== newClass){
@@ -157,7 +169,7 @@
 			false, false, true);
 		
 		//override .toString()
-		defineProperty(newClass, "toString", function toString(){ return "function Class() { [custom code] }"; }, true, false, true);
+		defineProperty(newClass, "toString", _classToString, true, false, true);
 
 		if(this.extend === extendFn){
 		//the 'extend' method of the parent class was not modified
@@ -174,17 +186,12 @@
 		let emptyFn = function (){};
 		emptyFn.prototype = this.prototype;
 		let newPrototype = new emptyFn();
+		emptyFn = null;
+		emptyFn = null;
 		defineProperty(newPrototype, "constructor", this, true, false, true);
 		
 		//override .toString()
-		defineProperty(newPrototype, "toString", 
-			function toString(){
-				if(this.constructor.name !== (void 0) && /^[a-z_$][a-z0-9_$]*$/i.test(this.constructor.name)){
-					return "[instance of "+this.constructor.name+"]";
-				}
-				return "[instance of Class]";
-			}, 
-			true, false, true);
+		defineProperty(newPrototype, "toString", _instanceToString, true, false, true);
 
 		defineProperty(newClass, "prototype", newPrototype, false, false, false);
 		
@@ -202,7 +209,7 @@
 
 	}
 	
-	defineProperty(extendFn, "toString", function toString(){ return "function extend() { [custom code] }"; }, true, false, true);
+	defineProperty(extendFn, "toString", _extendToString, true, false, true);
 	
 	//make extend() a static method of Class
 	defineProperty(Class, "extend", extendFn, true, false, true);
