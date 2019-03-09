@@ -139,8 +139,8 @@
 		
 				//construct the new instance
 				_initializing = true;
-				//constructorFn.apply(newInstance, [superFn].concat([].slice.call(arguments)));
-				constructorFn.bind(newInstance, superFn).apply(null, arguments);
+				//constructorFn.bind(newInstance, superFn).apply(null, arguments);
+				constructorFn.apply(newInstance, [superFn].concat([].slice.call(arguments)));	//(This method doesn't create another new function every time a constructor is run.)
 				_initializing = false;
 				
 				let className = newClass.name;	//store it in case the constructor changes the .name attribute
