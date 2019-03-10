@@ -26,6 +26,10 @@
 		
 		const private = Symbol("private members of Bravo");
 		
+		function viaStandalone(){
+			return this[private].getVal();
+		}
+		
 		return Alpha.extend({
 			className: "Bravo",
 			constructorFn: function (Super, myVal){
@@ -34,6 +38,7 @@
 				this[private] = {};
 				this[private].getVal = function (){ return Super.myVal; };
 				this[private].protected = Super;
+				this.viaStandalone = viaStandalone;
 			},
 			extensions: {
 				viaPrivate: function (){
@@ -59,6 +64,7 @@
 	console.assert(b.viaConstructor() === 10, "viaConstructor()", b.viaConstructor());
 	console.assert(b.viaPrivate() === 10, "viaPrivate()", b.viaPrivate());
 	console.assert(b.viaReferenceToProtected() === 10, "viaReferenceToProtected()", b.viaReferenceToProtected());
+	console.assert(b.viaStandalone() === 10, "viaStandalone()", b.viaStandalone());
 	console.groupEnd();
 	
 </script></head><body></body></html>
