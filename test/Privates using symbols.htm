@@ -1,0 +1,64 @@
+<html><head><title>Class testing</title>
+<script src="Class.js"></script><script>
+
+	let Alpha = (function (){
+		
+		const private = Symbol("private members of Alpha");
+		
+		return Class.extend({
+			className: "Alpha",
+			constructorFn: function (Super, myVal){
+				Super();
+				this[private] = {};
+				this[private].val = myVal;
+				Super.addProtectedMember("myVal", function (){ return this[private].val; });
+			},
+			extensions: {
+				getMyVal: function (){
+					return this[private].val;
+				}
+			}
+		});
+		
+	})();
+	
+	let Bravo = (function (){
+		
+		const private = Symbol("private members of Bravo");
+		
+		return Alpha.extend({
+			className: "Bravo",
+			constructorFn: function (Super, myVal){
+				Super(myVal);
+				this.viaConstructor = function (){ return Super.myVal; };
+				this[private] = {};
+				this[private].getVal = function (){ return Super.myVal; };
+				this[private].protected = Super;
+			},
+			extensions: {
+				viaPrivate: function (){
+					return this[private].getVal();
+				},
+				viaReferenceToProtected: function (){
+					console.assert(this[private].protected.addProtectedMember === void 0, ".addProtectedMember() was not deleted from Super");
+					return this[private].protected.myVal;	//Super.myVal
+				}
+			}
+		});
+		
+	})();
+	
+	console.group("Alpha instance");
+	let a = new Alpha(5);
+	console.assert(a.getMyVal() === 5, "getMyVal()", a.getMyVal());
+	console.groupEnd();
+	
+	console.group("Bravo instance");
+	let b = new Bravo(10);
+	console.assert(b.getMyVal() === 10, "getMyVal()", b.getMyVal());	//via inherited method
+	console.assert(b.viaConstructor() === 10, "viaConstructor()", b.viaConstructor());
+	console.assert(b.viaPrivate() === 10, "viaPrivate()", b.viaPrivate());
+	console.assert(b.viaReferenceToProtected() === 10, "viaReferenceToProtected()", b.viaReferenceToProtected());
+	console.groupEnd();
+	
+</script></head><body></body></html>
