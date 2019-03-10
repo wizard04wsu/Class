@@ -132,6 +132,7 @@ let Alpha = (function (){
 	function cube(){
 		return this[private].val**3;
 	}
+	
 	return Class.extend({
 		className: "Alpha",
 		constructorFn: function (Super, myVal){
@@ -140,7 +141,7 @@ let Alpha = (function (){
 			this[private].val = myVal;
 			this[private].square = (function (){ return this[private].val**2; }).bind(this);
 			Super.addProtectedMember("square", function (){ return this[private].square(); });
-            this.cube = cube;
+			this.cube = cube;
 		},
 		extensions: {
 			getMyVal: function (){
