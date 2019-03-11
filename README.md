@@ -120,11 +120,48 @@ b.foo;		//My ID is ...
 
 ### Private members
 
-A symbol can be used to implement private members for the class, allowing functions defined both inside and outside of the constructor to share data. This can also be used to pass along access to the protected members.
+A WeakMap or a symbol can be used to implement private members for the class, allowing functions defined both inside and outside of the constructor to share data. This can also be used to pass along access to the protected members.
 
-Symbols are not supported in IE 11, but you can use a string instead. However, this doesn't prevent private members from being accessed from outside of the class.
+#### Example using a WeakMap
 
-#### Example
+```
+let Alpha = Class.extend({
+	constructorFn:function (Super){
+		Super();
+		let foo = "foo";
+		Super.addProtectedMember("foo", function(){return foo});
+	}
+});
+
+let Bravo = (function (){
+	
+	const private = new WeakMap();
+	
+	function cube(){ return private.get(this).val**3; }
+	
+	return Alpha.extend({
+		constructorFn: function (Super, myVal){
+			Super();
+			private.set(this, {
+				val: myVal,
+				square: (function (){ return private.get(this).val**2; }).bind(this),
+				protected: Super
+			});
+			this.cube = cube;
+		},
+		extensions: {
+			test: function (){ console.log(private.get(this).val, private.get(this).square(), this.cube(), private.get(this).protected.foo); }
+		}
+	});
+	
+})();
+
+let b = new Bravo(5);
+
+b.test()	//5 25 125 "foo"
+```
+
+#### Example using a symbol
 
 ```
 let Alpha = Class.extend({
