@@ -2,7 +2,7 @@
 
 IE 11 is still in use, so this was made to work in it as well.
 
-This implementation also allows for classes to be given protected access to items in a super-class. If symbols are supported, this also allows for private members within a class.
+This implementation allows for classes to be given protected access to items in a super-class, and allows for private members to be accessed by methods within a class.
 
 ---
 
