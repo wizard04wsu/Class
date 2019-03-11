@@ -14,7 +14,7 @@
 		Object.defineProperty(object, propertyName, { value:value, writable:isWritable, enumerable:isEnumerable, configurable:isConfigurable });
 	}
 	function isPrimitive(o){ let t = typeof o; return (t !== "object" && t !== "function" ) || o === null; }
-	function warn(msg){ if(window && window.console) (window.console.warn || window.console.log)(msg); }
+	function warn(msg){ if(console) (console.warn || console.log)(msg); }
 	
 	function classNameIsValid(className){
 	//checks if the specified classname is valid (note: this doesn't check for reserved words)
@@ -113,8 +113,7 @@
 					_protected = newClass.prototype.constructor.apply(newInstance, arguments) || {};
 					
 					//add the protected getters/setters to superFn
-					let name;
-					for(name in _protected){
+					for(let name in _protected){
 						if(Object.prototype.hasOwnProperty.call(_protected, name)){
 							Object.defineProperty(superFn, name, {
 								get:(_protected[name].get ? _protected[name].get.bind(newInstance) : void 0),
@@ -200,8 +199,7 @@
 		
 		/*** add the new & overriding properties to the prototype ***/
 
-		let name;
-		for(name in options.extensions){
+		for(let name in options.extensions){
 			if(Object.prototype.hasOwnProperty.call(options.extensions, name)){
 				newPrototype[name] = options.extensions[name];
 			}
