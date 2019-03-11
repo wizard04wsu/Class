@@ -34,7 +34,7 @@
 
 	//Stores a getter and a setter (at least one, if not both), allowing a subclass' constructorFn to access a variable or function that is inside the new class' constructorFn.
 	function addProtectedMember(constructed, protectedObj, name, getter, setter){
-	  if(constructed) throw new Error("unable to access protected members");	//so the function can't be used outside of the constructor
+		if(constructed) throw new Error("protected members cannot be added outside of the constructor");	//in case the function is referenced elsewhere
 		if(name === (void 0) || ""+name === "") throw new TypeError("argument 'name' is required");
 		if(getter !== (void 0) && typeof(getter) !== "function") throw new TypeError("argument 'getter' is not a function");
 		if(setter !== (void 0) && typeof(setter) !== "function") throw new TypeError("argument 'setter' is not a function");
@@ -45,7 +45,7 @@
 
 	//Removes a stored getter & setter, preventing a subclass' constructorFn from accessing the (now private) member.
 	function removeProtectedMember(constructed, protectedObj, name){
-	  if(constructed) throw new Error("unable to access protected members");	//so the function can't be used outside of the constructor
+		if(constructed) throw new Error("protected members cannot be removed outside of the constructor");	//in case the function is referenced elsewhere
 		if(name === (void 0) || ""+name === "") throw new TypeError("argument 'name' is required");
 
 		delete protectedObj[name];
