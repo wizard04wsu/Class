@@ -137,14 +137,14 @@ let Bravo = (function (){
 	
 	const private = new WeakMap();
 	
-	function cube(){ return private.get(this).val**3; }
+	function cube(){ return Math.pow(private.get(this).val, 3); }
 	
 	return Alpha.extend({
 		constructorFn: function (Super, myVal){
 			Super();
 			private.set(this, {
 				val: myVal,
-				square: (function (){ return private.get(this).val**2; }).bind(this),
+				square: (function (){ return Math.pow(private.get(this).val, 2); }).bind(this),
 				protected: Super
 			});
 			this.cube = cube;
@@ -176,14 +176,14 @@ let Bravo = (function (){
 	
 	const private = Symbol();
 	
-	function cube(){ return this[private].val**3; }
+	function cube(){ return Math.pow(this[private].val, 3); }
 	
 	return Alpha.extend({
 		constructorFn: function (Super, myVal){
 			Super();
 			this[private] = {
 				val: myVal,
-				square: (function (){ return this[private].val**2; }).bind(this),
+				square: (function (){ return Math.pow(this[private].val, 2); }).bind(this),
 				protected: Super
 			};
 			this.cube = cube;
