@@ -1,3 +1,4 @@
+/* eslint-env es6 */
 // https://github.com/wizard04wsu/Class
 
 (function (){
@@ -12,7 +13,7 @@
 	function defineProperty(object, propertyName, value, isWritable, isEnumerable, isConfigurable){
 		Object.defineProperty(object, propertyName, { value:value, writable:isWritable, enumerable:isEnumerable, configurable:isConfigurable });
 	}
-	function isPrimitive(o){ let t = typeof o; return (t !== "object" && t !== "function" ) || o === null; };
+	function isPrimitive(o){ let t = typeof o; return (t !== "object" && t !== "function" ) || o === null; }
 	function warn(msg){ if(window && window.console) (window.console.warn || window.console.log)(msg); }
 	
 	function classNameIsValid(className){
@@ -112,6 +113,7 @@
 					_protected = newClass.prototype.constructor.apply(newInstance, arguments) || {};
 					
 					//add the protected getters/setters to superFn
+					let name;
 					for(name in _protected){
 						if(Object.prototype.hasOwnProperty.call(_protected, name)){
 							Object.defineProperty(superFn, name, {
@@ -198,6 +200,7 @@
 		
 		/*** add the new & overriding properties to the prototype ***/
 
+		let name;
 		for(name in options.extensions){
 			if(Object.prototype.hasOwnProperty.call(options.extensions, name)){
 				newPrototype[name] = options.extensions[name];
