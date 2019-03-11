@@ -142,9 +142,10 @@ let Bravo = (function (){
 	return Alpha.extend({
 		constructorFn: function (Super, myVal){
 			Super();
+			let that = this;
 			private.set(this, {
 				val: myVal,
-				square: (function (){ return Math.pow(private.get(this).val, 2); }).bind(this),
+				square: function (){ return Math.pow(private.get(that).val, 2); },
 				protected: Super
 			});
 			this.cube = cube;
@@ -181,9 +182,10 @@ let Bravo = (function (){
 	return Alpha.extend({
 		constructorFn: function (Super, myVal){
 			Super();
+			let that = this;
 			this[private] = {
 				val: myVal,
-				square: (function (){ return Math.pow(this[private].val, 2); }).bind(this),
+				square: function (){ return Math.pow(that[private].val, 2); },
 				protected: Super
 			};
 			this.cube = cube;
