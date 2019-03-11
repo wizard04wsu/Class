@@ -6,18 +6,20 @@
 	
 	let _initializing = false;
 	
+	
 	/*** helper functions ***/
 	
 	function defineProperty(object, propertyName, value, isWritable, isEnumerable, isConfigurable){
 		Object.defineProperty(object, propertyName, { value:value, writable:isWritable, enumerable:isEnumerable, configurable:isConfigurable });
 	}
-	function isPrimitive(o){ var t; return o===t || o===null || (t = typeof o)==="number" || t==="string" || t==="boolean"; }
+	function isPrimitive(o){ let t = typeof o; return (t !== "object" && t !== "function" ) || o === null; };
 	function warn(msg){ if(window && window.console) (window.console.warn || window.console.log)(msg); }
 	
 	function classNameIsValid(className){
 	//checks if the specified classname is valid (note: this doesn't check for reserved words)
 		return className !== (void 0) && /^[a-z_$][a-z0-9_$]*$/i.test(className);
 	}
+	
 	
 	/*** shared functions ***/
 	
@@ -30,6 +32,26 @@
 	};
 	let _extendToString = function toString(){ return "function extend() { [custom code] }"; };
 
+	//Stores a getter and a setter (at least one, if not both), allowing a subclass' constructorFn to access a variable or function that is inside the new class' constructorFn.
+	function addProtectedMember(constructed, protectedObj, name, getter, setter){
+	  if(constructed) throw new Error("unable to access protected members");	//so the function can't be used outside of the constructor
+		if(name === (void 0) || ""+name === "") throw new TypeError("argument 'name' is required");
+		if(getter !== (void 0) && typeof(getter) !== "function") throw new TypeError("argument 'getter' is not a function");
+		if(setter !== (void 0) && typeof(setter) !== "function") throw new TypeError("argument 'setter' is not a function");
+		if(!getter && !setter) return;
+
+		protectedObj[name] = {get:getter, set:setter};
+	}
+
+	//Removes a stored getter & setter, preventing a subclass' constructorFn from accessing the (now private) member.
+	function removeProtectedMember(constructed, protectedObj, name){
+	  if(constructed) throw new Error("unable to access protected members");	//so the function can't be used outside of the constructor
+		if(name === (void 0) || ""+name === "") throw new TypeError("argument 'name' is required");
+
+		delete protectedObj[name];
+	}
+
+	
 	/*** base class ***/
 	
 	//the base Class constructor; it will have two static methods, 'extend' and 'noConflict'
@@ -79,7 +101,8 @@
 				}
 
 				let _protected,
-					superFnCalled = false;
+					superFnCalled = false,
+					constructed = false;
 				let superFn = function Super(){
 					
 					if(superFnCalled) return;	//don't initialize it more than once
@@ -99,49 +122,31 @@
 						}
 					}
 					
-					/**
-					 * Stores a getter and a setter (at least one, if not both), allowing a subclass' constructorFn to access a variable or function that is inside this class' constructorFn.
-					 *
-					 * @param {string} name
-					 * @param {function} [getter]
-					 * @param {function} [setter]
-					 */
-					defineProperty(superFn, "addProtectedMember",
-						function addProtectedMember(name, getter, setter){
-							if(name === (void 0) || ""+name === "") throw new TypeError("argument 'name' is required");
-							if(getter !== (void 0) && typeof(getter) !== "function") throw new TypeError("argument 'getter' is not a function");
-							if(setter !== (void 0) && typeof(setter) !== "function") throw new TypeError("argument 'setter' is not a function");
-							if(!getter && !setter) return;
-
-							_protected[name] = {get:getter, set:setter};
-						},
-						false, false, true);
-					
-					/**
-					 * Removes a stored getter & setter, preventing a subclass' constructorFn from accessing the (now private) member.
-					 *
-					 * @param {string} name
-					 */
-					defineProperty(superFn, "removeProtectedMember",
-						function removeProtectedMember(name){
-							if(name === (void 0) || ""+name === "") throw new TypeError("argument 'name' is required");
-							
-							delete _protected[name];
-						},
-						false, false, true);
+					defineProperty(superFn, "addProtectedMember", addProtectedMember.bind(null, constructed, _protected), false, false, true);
+					defineProperty(superFn, "removeProtectedMember", removeProtectedMember.bind(null, constructed, _protected), false, false, true);
 					
 				}
 		
+				let className = newClass.name;	//store the provided class name in case the constructor changes the .name attribute
+				
 				//construct the new instance
 				_initializing = true;
 				//constructorFn.bind(newInstance, superFn).apply(null, arguments);
 				constructorFn.apply(newInstance, [superFn].concat([].slice.call(arguments)));	//(This method doesn't create another new function every time a constructor is run.)
 				_initializing = false;
 				
-				let className = newClass.name;	//store it in case the constructor changes the .name attribute
+				constructed = true;
+				
 				if(!superFnCalled) warn(className+" constructor does not include a call to the 'Super' argument");
 				
-				if(newInstance.constructor !== newClass){
+				if(newInstance.constructor === newClass){
+				//this function is the constructor of the new instance
+					
+					//In case the 'Super' argument gets referenced elsewhere, remove these since they're not allowed to be used outside of the constructor anyway.
+					delete superFn.addProtectedMember;
+					delete superFn.removeProtectedMember;
+				}
+				else{
 				//this function is the constructor of a super-class
 					
 					return _protected;
