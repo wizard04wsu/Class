@@ -79,7 +79,7 @@ s.foo;		//I am a rectangle and a square.
 
 ### Protected members
 
-Additionally, descendant classes can be given protected access to items in a super-class' constructor. This is done by providing getters and setters that are inherited. Once <code>*Super*()</code> is called within the constructor, the protected properties are made available as static properties of <code>*Super*</code>. The function also gains two methods that allow you to add/remove protected access to properties.
+Additionally, descendant classes can be given protected access to items in a super-class' constructor. This is done by providing getters and setters that are inherited. Once <code>*Super*()</code> is called within the constructor, the protected properties are made available as static properties of <code>*Super*</code>. The function also gains two methods that allow you to permit/revoke protected access for descendant classes.
 
 **<samp>*Super*.addProtectedMember(*name*, *getter*[, *setter*])</samp>**
 
