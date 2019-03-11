@@ -9,15 +9,10 @@
 	/*** helper functions ***/
 	
 	function defineProperty(object, propertyName, value, isWritable, isEnumerable, isConfigurable){
-		Object.defineProperty(object, propertyName, { value:value, writable:!!isWritable, enumerable:!!isEnumerable, configurable:!!isConfigurable });
+		Object.defineProperty(object, propertyName, { value:value, writable:isWritable, enumerable:isEnumerable, configurable:isConfigurable });
 	}
 	function isPrimitive(o){ var t; return o===t || o===null || (t = typeof o)==="number" || t==="string" || t==="boolean"; }
-	function warn(msg){
-		if(window.console){
-			if(typeof window.console.warn === "function") window.console.warn(msg);
-			else if(typeof window.console.log === "function") window.console.log(msg);
-		}
-	}
+	function warn(msg){ if(window && window.console) (window.console.warn || window.console.log)(msg); }
 	
 	function classNameIsValid(className){
 	//checks if the specified classname is valid (note: this doesn't check for reserved words)
