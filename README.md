@@ -2,7 +2,7 @@
 
 IE 11 is still in use, so this was made to work in it as well.
 
-This implementation also allows for classes to be given protected access to items in a super-class. If symbols are supported (not in IE 11), this also allows for private members within a class.
+This implementation also allows for classes to be given protected access to items in a super-class. If symbols are supported, this also allows for private members within a class.
 
 ---
 
@@ -122,55 +122,37 @@ b.foo;		//My ID is ...
 
 A symbol can be used to implement private members for the class, allowing functions defined both inside and outside of the constructor to share data. This can also be used to pass along access to the protected members.
 
+Symbols are not supported in IE 11, but you can use a string instead. However, this doesn't prevent private members from being accessed from outside of the class.
+
 #### Example
 
 ```
-let Alpha = (function (){
-	
-	const private = Symbol("private members of Alpha");
-	
-	function cube(){
-		return this[private].val**3;
+let Alpha = Class.extend({
+	constructorFn:function (Super){
+		Super();
+		let foo = "foo";
+		Super.addProtectedMember("foo", function(){return foo});
 	}
-	
-	return Class.extend({
-		className: "Alpha",
-		constructorFn: function (Super, myVal){
-			Super();
-			this[private] = {};
-			this[private].val = myVal;
-			this[private].square = (function (){ return this[private].val**2; }).bind(this);
-			Super.addProtectedMember("square", function (){ return this[private].square(); });
-			this.cube = cube;
-		},
-		extensions: {
-			getMyVal: function (){
-				return this[private].val;
-			}
-		}
-	});
-	
-})();
+});
 
 let Bravo = (function (){
 	
-	const private = Symbol("private members of Bravo");
+	const private = Symbol();
+	
+	function cube(){ return this[private].val**3; }
 	
 	return Alpha.extend({
-		className: "Bravo",
 		constructorFn: function (Super, myVal){
-			Super(myVal);
-			this[private] = {};
-			this[private].square = function (){ return Super.square; };
-			this[private].protected = Super;
+			Super();
+			this[private] = {
+				val: myVal,
+				square: (function (){ return this[private].val**2; }).bind(this),
+				protected: Super
+			};
+			this.cube = cube;
 		},
 		extensions: {
-			viaPrivate: function (){
-				return this[private].square();
-			},
-			viaReferenceToProtected: function (){
-				return this[private].protected.square;	//Super.square
-			}
+			test: function (){ console.log(this[private].val, this[private].square(), this.cube(), this[private].protected.foo); }
 		}
 	});
 	
@@ -178,10 +160,7 @@ let Bravo = (function (){
 
 let b = new Bravo(5);
 
-b.viaPrivate();			//25
-b.viaReferenceToProtected();	//25
-b.cube();			//125
-
+b.test()	//5 25 125 "foo"
 ```
 
 
