@@ -188,7 +188,6 @@
 		emptyFn.prototype = this.prototype;
 		let newPrototype = new emptyFn();
 		emptyFn = null;
-		emptyFn = null;
 		defineProperty(newPrototype, "constructor", this, true, false, true);
 		
 		//override .toString()
