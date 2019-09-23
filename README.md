@@ -2,7 +2,7 @@
 
 IE 11 is still in use, so this was made to work in it as well.
 
-This implementation allows for classes to be given protected access to items in a super-class, and allows for private members to be accessed by methods within a class.
+This implementation allows for classes to be given protected access to items in a super-class (via getters &amp; setters), and allows for private members to be accessed by methods within a class (via the constructor).
 
 ---
 
@@ -20,19 +20,16 @@ This can include any of the following:
 	Used as `.name` for the class constructor and in `.toString()` for instances of the class. If not specified, it will be the same as the parent class.
 	
 	- constructorFn {function}  
-	Initializes new instances of the class. A "super" function is passed as the first argument; <a href="#user-content-super">see below.</a>
+	Initializes new instances of the class. A 'Super' function is passed as the first argument; <a href="#user-content-super">see below.</a>
 	
 	- returnFn {function}  
 	Returns a value when the constructor is called without using the 'new' keyword.
-	
-	- extensions {object}  
-	Additional and overriding properties and methods for the prototype of the class.
 
 ### <span id="super">The 'Super' function</span>
 
 The first argument of the 'constructorFn' option is a function required to instantiate the class using the parent class' constructor. Basically, it acts like the 'super' keyword in ES6. It should be called as soon as possible inside the constructor, before using the 'this' keyword, to ensure that the instance is properly initialized.
 
-**<samp id="super">*options*.*constructorFn*(*Super*[, *arg1*[, ...]])</samp>**
+**<samp id="super">*options*.constructorFn(*Super*[, *arg1*[, ...]])</samp>**
 
 #### Example
 
@@ -44,12 +41,10 @@ let Rectangle = Class.extend({
 		this.width = width||0;
 		this.height = height||0;
 		Object.defineProperty(this, "area", { get:function (){ return Math.abs(this.width * this.height); }, enumerable:true, configurable:true });
+		Object.defineProperty(this, "whatAmI", { get:function (){ return "I am a rectangle."; }, enumerable:true, configurable:true });
 	},
 	returnFn:function (width, height){
 		return Math.abs((width||0) * (height||0));
-	},
-	extensions:{
-		foo:"I am a rectangle."
 	}
 });
 
@@ -57,13 +52,12 @@ let Square = Rectangle.extend({
 	className:"Square",
 	constructorFn:function (Super, width){
 		Super(width, width);
-		Object.defineProperty(this, "height", { get:function (){ return this.width; }, set:function (val){ this.width = val||0; }, enumerable:true, configurable:true });
+		Object.defineProperty(this, "height", { get:function (){ return this.width; }, set:function (val){ this.width = 1*val||0; }, enumerable:true, configurable:true });
+		let iAm = [this.whatAmI, "I am a square."].join(" ");
+		Object.defineProperty(this, "whatAmI", { get:function (){ return iAm; }, enumerable:true, configurable:true });
 	},
 	returnFn:function (width){
 		return Math.pow(width||0, 2);
-	},
-	extensions:{
-		foo:"I am a rectangle and a square."
 	}
 });
 
@@ -73,7 +67,7 @@ s.toString();	//[instance of Square]
 s.area;		//9
 s.height = 4;
 s.area;		//16
-s.foo;		//I am a rectangle and a square.
+s.whatAmI;		//I am a rectangle. I am a square.
 
 ```
 
@@ -147,9 +141,7 @@ let Bravo = (function (){
 				protected: Super
 			});
 			this.cube = cube;
-		},
-		extensions: {
-			test: function (){ console.log(private.get(this).val, private.get(this).square(), this.cube(), private.get(this).protected.foo); }
+			this.test = function (){ console.log(private.get(this).val, private.get(this).square(), this.cube(), private.get(this).protected.foo); };
 		}
 	});
 	
@@ -187,9 +179,7 @@ let Bravo = (function (){
 				protected: Super
 			};
 			this.cube = cube;
-		},
-		extensions: {
-			test: function (){ console.log(this[private].val, this[private].square(), this.cube(), this[private].protected.foo); }
+			this.test = function (){ console.log(this[private].val, this[private].square(), this.cube(), this[private].protected.foo); };
 		}
 	});
 	

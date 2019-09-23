@@ -65,7 +65,6 @@
 	 * @param {string} [options.className] - Used as .name for the class function and in .toString() for instances of the class.
 	 * @param {function} [options.constructorFn] - Initializes new instances of the class. A function is passed as the first argument, used to initialize the instance using the parent class' constructor; be sure to call it inside constructorFn (before using `this` or protected members).
 	 * @param {function} [options.returnFn] - Returns a value when the constructor is called without using the 'new' keyword.
-	 * @param {object} [options.extensions] - Additional and overriding properties and methods for the prototype of the class.
 	 * @return {function} - The new class.
 	 */
 	let _extendFn = function extend(options){
@@ -188,21 +187,12 @@
 		
 		//override .toString()
 		defineProperty(newPrototype, "toString", _instanceToString, true, false, true);
-
+		
 		defineProperty(newClass, "prototype", newPrototype, false, false, false);
 		
 		
-		/*** add the new & overriding properties to the prototype ***/
-
-		for(let name in options.extensions){
-			if(Object.prototype.hasOwnProperty.call(options.extensions, name)){
-				newPrototype[name] = options.extensions[name];
-			}
-		}
-		
-		
 		return newClass;
-
+		
 	}
 	
 	defineProperty(_extendFn, "toString", _extendToString, true, false, true);
