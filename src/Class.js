@@ -33,8 +33,8 @@
 	let _extendToString = function toString(){ return "function extend() { [custom code] }"; };
 
 	//Stores a getter and/or setter, or removes them. The getter/setter allows a subclass' constructorFn to access a variable or function that is inside the new class' constructorFn.
-	function _defineProtectedMember(constructed, protectedObj, name, options){
-		if(constructed) throw new Error("protected members cannot be added or removed outside of the constructor");	//in case the function is referenced elsewhere
+	function _defineProtectedMember(protectedObj, name, options){
+		if(!_initializing) throw new Error("protected members cannot be added or removed outside of the constructor");	//in case the function is referenced elsewhere
 		if(name === (void 0) || ""+name === "") throw new TypeError("argument 'name' is required");
 		
 		options = new Object(options);
@@ -99,8 +99,7 @@
 				}
 
 				let protectedMembers,
-					superFnCalled = false,
-					constructed = false;
+					superFnCalled = false;
 				let superFn = function Super(){
 					
 					if(superFnCalled) return;	//don't initialize it more than once
@@ -120,7 +119,7 @@
 						}
 					}
 					
-					defineProperty(superFn, "defineProtectedMember", _defineProtectedMember.bind(null, constructed, protectedMembers), false, false, true);
+					defineProperty(superFn, "defineProtectedMember", _defineProtectedMember.bind(null, protectedMembers), false, false, true);
 					
 				}
 		
@@ -130,9 +129,6 @@
 				_initializing = true;
 				//$constructorFn.bind(newInstance, superFn).apply(null, arguments);
 				$constructorFn.apply(newInstance, [superFn].concat([].slice.call(arguments)));	//(This way it doesn't create another new function every time a constructor is run.)
-				_initializing = false;
-				
-				constructed = true;
 				
 				if(!superFnCalled && !$warnedAboutSuper){
 					warn(className+" constructor does not call Super()");
@@ -141,6 +137,8 @@
 				
 				if(newInstance.constructor === newClass){
 				//this function is the constructor of the new instance
+					
+					_initializing = false;
 					
 					//In case the 'Super' argument gets referenced elsewhere, remove this since it's not allowed to be used outside of the constructor anyway.
 					delete superFn.defineProtectedMember;
