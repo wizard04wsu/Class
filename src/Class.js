@@ -28,38 +28,34 @@
 	function _emptyFn(){}
 	let _classToString = function toString(){ return "function Class() { [custom code] }"; };
 	let _instanceToString = function toString(){
-		if(classNameIsValid(this.constructor.name)) return "[instance of "+this.constructor.name+"]";
-		return "[instance of Class]";
+		return "[instance of "+(classNameIsValid(this.constructor.name) ? this.constructor.name : "Class")+"]";
 	};
 	let _extendToString = function toString(){ return "function extend() { [custom code] }"; };
 
-	//Stores a getter and a setter (at least one, if not both), allowing a subclass' constructorFn to access a variable or function that is inside the new class' constructorFn.
-	function addProtectedMember(constructed, protectedObj, name, getter, setter){
-		if(constructed) throw new Error("protected members cannot be added outside of the constructor");	//in case the function is referenced elsewhere
+	//Stores a getter and/or setter, or removes them. The getter/setter allows a subclass' constructorFn to access a variable or function that is inside the new class' constructorFn.
+	function _defineProtectedMember(constructed, protectedObj, name, options){
+		if(constructed) throw new Error("protected members cannot be added or removed outside of the constructor");	//in case the function is referenced elsewhere
 		if(name === (void 0) || ""+name === "") throw new TypeError("argument 'name' is required");
-		if(getter !== (void 0) && typeof(getter) !== "function") throw new TypeError("argument 'getter' is not a function");
-		if(setter !== (void 0) && typeof(setter) !== "function") throw new TypeError("argument 'setter' is not a function");
-		if(!getter && !setter) return;
-
-		protectedObj[name] = {get:getter, set:setter};
-	}
-
-	//Removes a stored getter & setter, preventing a subclass' constructorFn from accessing the (now private) member.
-	function removeProtectedMember(constructed, protectedObj, name){
-		if(constructed) throw new Error("protected members cannot be removed outside of the constructor");	//in case the function is referenced elsewhere
-		if(name === (void 0) || ""+name === "") throw new TypeError("argument 'name' is required");
-
-		delete protectedObj[name];
+		
+		options = new Object(options);
+		if(options.get !== (void 0) && typeof(options.get) !== "function") throw new TypeError("option 'get' is not a function");
+		if(options.set !== (void 0) && typeof(options.set) !== "function") throw new TypeError("option 'set' is not a function");
+		if(!options.get && !options.set){
+			delete protectedObj[name];
+		}
+		else{
+			protectedObj[name] = { get: options.get, set: options.set };
+		}
 	}
 
 	
 	/*** base class ***/
 	
 	//the base Class constructor; it will have two static methods, 'extend' and 'noConflict'
-	function Class(){}
+	let _baseClass = function Class(){}
 	
-	defineProperty(Class.prototype, "toString", _instanceToString, true, false, true);
-	defineProperty(Class, "toString", _classToString, true, false, true);
+	defineProperty(_baseClass.prototype, "toString", _instanceToString, true, false, true);
+	defineProperty(_baseClass, "toString", _classToString, true, false, true);
 	
 	
 	/**
@@ -72,7 +68,7 @@
 	 * @param {object} [options.extensions] - Additional and overriding properties and methods for the prototype of the class.
 	 * @return {function} - The new class.
 	 */
-	let extendFn = function extend(options){
+	let _extendFn = function extend(options){
 		
 		if(options === void 0) options = {};
 		else if(isPrimitive(options)) throw new TypeError("argument 'options' is not an object");
@@ -80,8 +76,9 @@
 
 		/*** create the new constructor ***/
 
-		let constructorFn = typeof(options.constructorFn) === "function" ? options.constructorFn : _constructorFn;
-		let returnFn = typeof(options.returnFn) === "function" ? options.returnFn : _emptyFn;
+		let $constructorFn = typeof(options.constructorFn) === "function" ? options.constructorFn : _constructorFn;
+		let $returnFn = typeof(options.returnFn) === "function" ? options.returnFn : _emptyFn;
+		let $warnedAboutSuper = false;
 
 		let newClass = function Class(){
 			
@@ -89,9 +86,9 @@
 			//A new instance is being created; initialize it.
 			//This condition will be true in these cases:
 			//  1) The 'new' operator was used to instantiate this class
-			//  2) The 'new' operator was used to instantiate a subclass, and the subclass' constructorFn() calls its first argument (the bound superFn)
-			//  3) The 'new' operator was used to instantiate a subclass, and the subclass' constructorFn() includes something like `MySuperClass.call(this)`
-			//  4) Possibly if the prototype chain has been screwed with
+			//  2) The 'new' operator was used to instantiate a subclass, and the subclass' $constructorFn() calls its first argument (the bound superFn)
+			//  3) The 'new' operator was used to instantiate a subclass, and the subclass' $constructorFn() includes something like `MySuperClass.call(this)`
+			//  4) Possibly if the prototype chain has been manipulated
 
 				let newInstance = this;
 
@@ -101,7 +98,7 @@
 					defineProperty(newInstance, "constructor", newClass, true, false, true);
 				}
 
-				let _protected,
+				let protectedMembers,
 					superFnCalled = false,
 					constructed = false;
 				let superFn = function Super(){
@@ -110,21 +107,20 @@
 					superFnCalled = true;
 					
 					//initialize the instance using the parent class
-					_protected = newClass.prototype.constructor.apply(newInstance, arguments) || {};
+					protectedMembers = newClass.prototype.constructor.apply(newInstance, arguments) || {};
 					
 					//add the protected getters/setters to superFn
-					for(let name in _protected){
-						if(Object.prototype.hasOwnProperty.call(_protected, name)){
+					for(let name in protectedMembers){
+						if(Object.prototype.hasOwnProperty.call(protectedMembers, name)){
 							Object.defineProperty(superFn, name, {
-								get:(_protected[name].get ? _protected[name].get.bind(newInstance) : void 0),
-								set:(_protected[name].set ? _protected[name].set.bind(newInstance) : void 0),
+								get:(protectedMembers[name].get ? protectedMembers[name].get.bind(newInstance) : void 0),
+								set:(protectedMembers[name].set ? protectedMembers[name].set.bind(newInstance) : void 0),
 								enumerable:true, configurable:true
 							});
 						}
 					}
 					
-					defineProperty(superFn, "addProtectedMember", addProtectedMember.bind(null, constructed, _protected), false, false, true);
-					defineProperty(superFn, "removeProtectedMember", removeProtectedMember.bind(null, constructed, _protected), false, false, true);
+					defineProperty(superFn, "defineProtectedMember", _defineProtectedMember.bind(null, constructed, protectedMembers), false, false, true);
 					
 				}
 		
@@ -132,25 +128,27 @@
 				
 				//construct the new instance
 				_initializing = true;
-				//constructorFn.bind(newInstance, superFn).apply(null, arguments);
-				constructorFn.apply(newInstance, [superFn].concat([].slice.call(arguments)));	//(This method doesn't create another new function every time a constructor is run.)
+				//$constructorFn.bind(newInstance, superFn).apply(null, arguments);
+				$constructorFn.apply(newInstance, [superFn].concat([].slice.call(arguments)));	//(This way it doesn't create another new function every time a constructor is run.)
 				_initializing = false;
 				
 				constructed = true;
 				
-				if(!superFnCalled) warn(className+" constructor does not include a call to the 'Super' argument");
+				if(!superFnCalled && !$warnedAboutSuper){
+					warn(className+" constructor does not call Super()");
+					$warnedAboutSuper = true;	//prevent multiple warnings about the same issue
+				}
 				
 				if(newInstance.constructor === newClass){
 				//this function is the constructor of the new instance
 					
-					//In case the 'Super' argument gets referenced elsewhere, remove these since they're not allowed to be used outside of the constructor anyway.
-					delete superFn.addProtectedMember;
-					delete superFn.removeProtectedMember;
+					//In case the 'Super' argument gets referenced elsewhere, remove this since it's not allowed to be used outside of the constructor anyway.
+					delete superFn.defineProtectedMember;
 				}
 				else{
 				//this function is the constructor of a super-class
 					
-					return _protected;
+					return protectedMembers;
 				}
 				//else return this
 				
@@ -158,7 +156,7 @@
 			else{
 			//the 'new' operator was not used; it was just called as a function
 
-				return returnFn.apply(null, arguments);
+				return $returnFn.apply(null, arguments);
 
 			}
 			
@@ -172,11 +170,11 @@
 		//override .toString()
 		defineProperty(newClass, "toString", _classToString, true, false, true);
 
-		if(this.extend === extendFn){
+		if(this.extend === _extendFn){
 		//the 'extend' method of the parent class was not modified
 			
 			//make extend() a static method of the new class
-			defineProperty(newClass, "extend", extendFn, true, false, true);
+			defineProperty(newClass, "extend", _extendFn, true, false, true);
 		}
 
 		
@@ -209,10 +207,10 @@
 
 	}
 	
-	defineProperty(extendFn, "toString", _extendToString, true, false, true);
+	defineProperty(_extendFn, "toString", _extendToString, true, false, true);
 	
 	//make extend() a static method of Class
-	defineProperty(Class, "extend", extendFn, true, false, true);
+	defineProperty(_baseClass, "extend", _extendFn, true, false, true);
 	
 	
 	
@@ -227,14 +225,14 @@
 	function noConflict(){
 		context.Class = oldClass;
 		context = oldClass = null;
-		delete Class.noConflict;
-		return Class;
+		delete _baseClass.noConflict;
+		return _baseClass;
 	}
 	//make noConflict() a static method of Class
-	defineProperty(Class, "noConflict", noConflict, true, false, true);
+	defineProperty(_baseClass, "noConflict", noConflict, true, false, true);
 	
 	
 	
-	context.Class = Class;
+	context.Class = _baseClass;
 	
-}).call(window);
+}).call(this);

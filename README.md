@@ -16,16 +16,16 @@ Parameters:
 - *options* {object}  
 This can include any of the following:
 	
-	- *className* {string}  
+	- className {string}  
 	Used as `.name` for the class constructor and in `.toString()` for instances of the class. If not specified, it will be the same as the parent class.
 	
-	- *constructorFn* {function}  
+	- constructorFn {function}  
 	Initializes new instances of the class. A "super" function is passed as the first argument; <a href="#user-content-super">see below.</a>
 	
-	- *returnFn* {function}  
+	- returnFn {function}  
 	Returns a value when the constructor is called without using the 'new' keyword.
 	
-	- *extensions* {object}  
+	- extensions {object}  
 	Additional and overriding properties and methods for the prototype of the class.
 
 ### <span id="super">The 'Super' function</span>
@@ -79,15 +79,13 @@ s.foo;		//I am a rectangle and a square.
 
 ### Protected members
 
-Additionally, descendant classes can be given protected access to items in a super-class' constructor. This is done by providing getters and setters that are inherited. Once <code>*Super*()</code> is called within the constructor, the protected properties are made available as static properties of <code>*Super*</code>. The function also gains two methods that allow you to permit/revoke protected access for descendant classes.
+Additionally, descendant classes can be given protected access to items in a super-class' constructor. This is done by providing getters and setters that are inherited. Once <code>*Super*()</code> is called within the constructor, the protected properties are made available as static properties of <code>*Super*</code>. The function also gains a method that allows you to grant protected access to (or revoke access from) descendant classes.
 
-**<samp>*Super*.addProtectedMember(*name*, *getter*[, *setter*])</samp>**
+**<samp>*Super*.defineProtectedMember(*name*[, *options*])</samp>**
 
-Adds a getter and a setter (at least one, if not both) that will only be accessible within the constructors of any descendant classes.
+Adds a getter and/or setter that will be accessible within the constructors of descendant classes. If neither is specified, the protected member is removed so that it is not accessible from any descendants of this class.
 
-**<samp>*Super*.removeProtectedMember(*name*)</samp>**
-
-Removes a getter/setter so that it is not accessible from any descendants of this class.
+<code>*options*</code> is an object with two optional methods, <code>get</code> and <code>set</code>.
 
 #### Example
 
@@ -97,7 +95,7 @@ let Alpha = Class.extend({
 	constructorFn:function (Super){
 		Super();
 		let randomInstanceID = Math.random();
-		Super.addProtectedMember("rando", function(){return randomInstanceID});
+		Super.defineProtectedMember("rando", { get:function(){return randomInstanceID} });
 	}
 });
 
@@ -129,7 +127,7 @@ let Alpha = Class.extend({
 	constructorFn:function (Super){
 		Super();
 		let foo = "foo";
-		Super.addProtectedMember("foo", function(){return foo});
+		Super.defineProtectedMember("foo", { get:function(){return foo} });
 	}
 });
 
@@ -169,7 +167,7 @@ let Alpha = Class.extend({
 	constructorFn:function (Super){
 		Super();
 		let foo = "foo";
-		Super.addProtectedMember("foo", function(){return foo});
+		Super.defineProtectedMember("foo", { get:function(){return foo} });
 	}
 });
 

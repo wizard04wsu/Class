@@ -1,5 +1,5 @@
 <html><head><title>Class testing</title>
-<script src="Class.js"></script><script>
+<script src="../src/Class.js"></script><script>
 
 	let Alpha = (function (){
 		
@@ -11,7 +11,7 @@
 				Super();
 				this[private] = {};
 				this[private].val = myVal;
-				Super.addProtectedMember("myVal", function (){ return this[private].val; });
+				Super.defineProtectedMember("myVal", { get:function (){ return this[private].val; } });
 			},
 			extensions: {
 				getMyVal: function (){
@@ -45,7 +45,7 @@
 					return this[private].getVal();
 				},
 				viaReferenceToProtected: function (){
-					console.assert(this[private].protected.addProtectedMember === void 0, ".addProtectedMember() was not deleted from Super");
+					console.assert(this[private].protected.defineProtectedMember === void 0, ".defineProtectedMember() was not deleted from Super");
 					return this[private].protected.myVal;	//Super.myVal
 				}
 			}
@@ -67,4 +67,6 @@
 	console.assert(b.viaStandalone() === 10, "viaStandalone()", b.viaStandalone());
 	console.groupEnd();
 	
-</script></head><body></body></html>
+</script></head><body>
+	<p>See console for assertions.</p>
+</body></html>
