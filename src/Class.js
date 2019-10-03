@@ -41,8 +41,7 @@
 		let classConstructor = this.constructor,
 			classScope = _scopes.get(classConstructor);
 		
-		if(classScope && classScope.hasOwnProperty(propertyName)){
-			if(classScope[propertyName].accessModifier === accessModifier) return;
+		if(classScope && classScope.hasOwnProperty(propertyName) && classScope[propertyName].accessModifier !== accessModifier){
 			throw new Error("the access modifier of an existing property cannot be modified");
 		}
 		if(!accessModifier || !xor(accessModifier & PRIVATE, accessModifier & PROTECTED)){
