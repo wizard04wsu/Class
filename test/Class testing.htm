@@ -62,11 +62,12 @@
 		
 		console.group("Delta class");
 		Delta = Class.extend({className:"Delta",
-			returnFn:function (){return "foo"},
-			extensions:{
-				bar:function (){return "bar"},
-				baz:function (){return this.bar()}
-			}
+			constructorFn:function (Super){
+				Super();
+				this.bar = function (){return "bar"};
+				this.baz = function (){return this.bar()};
+			},
+			returnFn:function (){return "foo"}
 		});
 		console.dir(Delta);
 		console.groupEnd();
@@ -93,10 +94,10 @@
 		
 		console.group("Echo class");
 		Echo = Class.extend({className:"Echo",
-			returnFn:function (){return this.foo},
-			extensions:{
-				foo:function (){return "foo"}
-			}
+			constructorFn:function (){
+				this.foo = function (){return "foo"};
+			},
+			returnFn:function (){return this.foo}
 		});
 		console.dir(Echo);
 		console.groupEnd();
@@ -206,7 +207,12 @@
 				Super();
 				let foo="bar";
 				this.bop = function (){return foo};
-				Super.defineProtectedMember("foo", { get:function (){return foo}, set:function(v){foo=v} });	//subclasses of Lima will have access to the 'foo' variable
+				Object.defineProperty(Super.protected, "foo", {
+					get:function (){return foo},
+					set:function(v){foo=v},
+					enumerable:true, configurable:true
+				});	//subclasses of Lima will have access to the 'foo' variable
+				Super.protected.foo = foo;
 			}
 		});
 		console.dir(Lima);
@@ -216,11 +222,13 @@
 		Mike = Lima.extend({className:"Mike",
 			constructorFn:function(Super){
 				Super();
-				Super.defineProtectedMember("foo");	//subclasses of Mike will not have access to the protected property
-				console.assert(Super.foo === "bar", Super.foo);	//Mike constructor has access to the protected property
-				Super.foo = "baz";
-				console.assert(Super.foo === "baz", Super.foo);	//protected property can be changed via the Mike constructor
+				let protected = Super.protected;
+				console.log('Super.protected', protected);
+				console.assert(protected.foo === "bar", protected.foo);	//Mike constructor has access to the protected foo value
+				protected.foo = "baz";
+				console.assert(protected.foo === "baz", protected.foo);	//protected foo value can be changed via the Mike constructor
 				console.assert(this.bop() === "baz", this.bop()); //confirms that the value in the Lima constructor's variable is what changed
+				delete protected.foo;	//subclasses of Mike will not have access to the protected foo value
 			}
 		});
 		console.dir(Mike);
@@ -229,15 +237,15 @@
 		console.group("Mike instance");
 		mike1 = new Mike();
 		console.dir(mike1);
-		console.assert(mike1.foo === void 0, mike1.foo);	//instance doesn't have access to the protected property
-		console.assert(mike1.bop() === "baz", mike1.bop());	//instance's constructor-created method does have access to the protected property
+		console.assert(mike1.foo === void 0, mike1.foo);	//instance doesn't have access to the protected foo value
+		console.assert(mike1.bop() === "baz", mike1.bop());	//instance's constructor-created method does have access to the protected foo value
 		console.groupEnd();
 
 		console.group("November class");
 		November = Mike.extend({className:"November",
 			constructorFn:function(Super){
 				Super();
-				console.assert(Super.foo === void 0, Super.foo);	//class November doesn't have access to the protected property
+				console.assert(Super.protected.foo === void 0, Super.protected.foo);	//class November doesn't have access to the protected foo value
 				console.assert(this.bop() === "baz", this.bop());	//inherited function still has access
 			}
 		});
