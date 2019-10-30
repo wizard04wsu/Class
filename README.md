@@ -1,8 +1,8 @@
 # JavaScript Class Implementation
 
-IE 11 is still in use, so this was made to work in it as well.
+This no longer works in IE 11.
 
-This implementation allows for classes to be given protected access to items in a super-class (via getters &amp; setters), and allows for private members to be accessed by methods within a class (via the constructor).
+This implementation allows for classes to be given protected access to items in a super-class.
 
 ---
 
