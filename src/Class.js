@@ -5,10 +5,7 @@
 	
 	"use strict";
 	
-	const PRIVATE = 4, PROTECTED = 2, STATIC = 1;
-	
-	let _initializing = false,
-		_scopes = new WeakMap();
+	let _initializing = false;
 	
 	
 	/*** helper functions ***/
@@ -23,7 +20,6 @@
 	//checks if the specified classname is valid (note: this doesn't check for reserved words)
 		return className !== (void 0) && /^[a-z_$][a-z0-9_$]*$/i.test(className);
 	}
-	function xor(a, b){ return !!(a ? !b : b); }
 	
 	
 	/*** shared functions ***/
