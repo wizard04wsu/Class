@@ -44,7 +44,10 @@
 			constructorFn:function (Super){
 				Super();
 				let randomInstanceID = Math.random();
-				Super.defineProtectedMember("rando", { get:function(){return randomInstanceID} });
+				Object.defineProperty(Super.protected, "rando", {
+					get:function(){return randomInstanceID},
+					enumerable:true, configurable:true
+				});
 			}
 		});
 
@@ -52,7 +55,7 @@
 			className:"Bravo",
 			constructorFn:function (Super){
 				Super();
-				this.foo = "My ID is "+Super.rando;
+				this.foo = "My ID is "+Super.protected.rando;
 			}
 		});
 

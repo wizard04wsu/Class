@@ -40,8 +40,8 @@ let Rectangle = Class.extend({
 		Super();
 		this.width = width||0;
 		this.height = height||0;
-		Object.defineProperty(this, "area", { get:function (){ return Math.abs(this.width * this.height); }, enumerable:true, configurable:true });
-		Object.defineProperty(this, "whatAmI", { get:function (){ return "I am a rectangle."; }, enumerable:true, configurable:true });
+		this.area = function (){ return Math.abs(this.width * this.height); };
+		this.whatAmI = function (){ return "I am a rectangle."; };
 	},
 	returnFn:function (width, height){
 		return Math.abs((width||0) * (height||0));
@@ -53,8 +53,8 @@ let Square = Rectangle.extend({
 	constructorFn:function (Super, width){
 		Super(width, width);
 		Object.defineProperty(this, "height", { get:function (){ return this.width; }, set:function (val){ this.width = 1*val||0; }, enumerable:true, configurable:true });
-		let iAm = [this.whatAmI, "I am a square."].join(" ");
-		Object.defineProperty(this, "whatAmI", { get:function (){ return iAm; }, enumerable:true, configurable:true });
+		let iAm = [this.whatAmI(), "I am a square."].join(" ");
+		this.whatAmI = function (){ return iAm; };
 	},
 	returnFn:function (width){
 		return Math.pow(width||0, 2);
@@ -64,22 +64,16 @@ let Square = Rectangle.extend({
 let s = new Square(3);
 
 s.toString();	//[instance of Square]
-s.area;		//9
+s.area();		//9
 s.height = 4;
-s.area;		//16
-s.whatAmI;		//I am a rectangle. I am a square.
+s.area();		//16
+s.whatAmI();		//I am a rectangle. I am a square.
 
 ```
 
 ### Protected members
 
-Additionally, descendant classes can be given protected access to items in a super-class' constructor. This is done by providing getters and setters that are inherited. Once <code>*Super*()</code> is called within the constructor, the protected properties are made available as static properties of <code>*Super*</code>. The function also gains a method that allows you to grant protected access to (or revoke access from) descendant classes.
-
-**<samp>*Super*.defineProtectedMember(*name*[, *options*])</samp>**
-
-Adds a getter and/or setter that will be accessible within the constructors of descendant classes. If neither is specified, the protected member is removed so that it is not accessible from any descendants of this class.
-
-<code>*options*</code> is an object with two optional methods, <code>get</code> and <code>set</code>.
+Additionally, a class can give its descendants protected access to its private variables. Once <code>*Super*()</code> is called within the constructor, the protected properties of its parent class are made available via <code>*Super*.protected</code>. This object will be available to child classes as well; any additions to or deletions of its members that are made here in the constructor will be reflected in the class' descendants.
 
 #### Example
 
@@ -89,7 +83,7 @@ let Alpha = Class.extend({
 	constructorFn:function (Super){
 		Super();
 		let randomInstanceID = Math.random();
-		Super.defineProtectedMember("rando", { get:function(){return randomInstanceID} });
+		Super.protected.rando = randomInstanceID;
 	}
 });
 
@@ -97,7 +91,7 @@ let Bravo = Alpha.extend({
 	className:"Bravo",
 	constructorFn:function (Super){
 		Super();
-		this.foo = "My ID is "+Super.rando;
+		this.foo = "My ID is "+Super.protected.rando;
 	}
 });
 
@@ -112,82 +106,30 @@ b.foo;		//My ID is ...
 
 ### Private members
 
-A WeakMap or a symbol can be used to implement private members for the class, allowing functions defined both inside and outside of the constructor to share data. This can also be used to pass along access to the protected members.
+A WeakMap or a symbol can be used to implement private members for class instances, allowing functions defined both inside and outside of the constructor to share data.
 
 #### Example using a WeakMap
 
 ```
-let Alpha = Class.extend({
-	constructorFn:function (Super){
-		Super();
-		let foo = "foo";
-		Super.defineProtectedMember("foo", { get:function(){return foo} });
-	}
-});
-
-let Bravo = (function (){
+let Cuber = (function (){
 	
 	const private = new WeakMap();
 	
 	function cube(){ return Math.pow(private.get(this).val, 3); }
 	
-	return Alpha.extend({
+	return Class.extend({
 		constructorFn: function (Super, myVal){
 			Super();
-			let that = this;
-			private.set(this, {
-				val: myVal,
-				square: function (){ return Math.pow(private.get(that).val, 2); },
-				protected: Super
-			});
+			private.set(this, { val: myVal });
 			this.cube = cube;
-			this.test = function (){ console.log(private.get(this).val, private.get(this).square(), this.cube(), private.get(this).protected.foo); };
 		}
 	});
 	
 })();
 
-let b = new Bravo(5);
+let c = new Cuber(5);
 
-b.test()	//5 25 125 "foo"
-```
-
-#### Example using a symbol
-
-```
-let Alpha = Class.extend({
-	constructorFn:function (Super){
-		Super();
-		let foo = "foo";
-		Super.defineProtectedMember("foo", { get:function(){return foo} });
-	}
-});
-
-let Bravo = (function (){
-	
-	const private = Symbol();
-	
-	function cube(){ return Math.pow(this[private].val, 3); }
-	
-	return Alpha.extend({
-		constructorFn: function (Super, myVal){
-			Super();
-			let that = this;
-			this[private] = {
-				val: myVal,
-				square: function (){ return Math.pow(that[private].val, 2); },
-				protected: Super
-			};
-			this.cube = cube;
-			this.test = function (){ console.log(this[private].val, this[private].square(), this.cube(), this[private].protected.foo); };
-		}
-	});
-	
-})();
-
-let b = new Bravo(5);
-
-b.test()	//5 25 125 "foo"
+c.cube();	//125
 ```
 
 

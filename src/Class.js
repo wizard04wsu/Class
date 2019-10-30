@@ -36,92 +36,27 @@
 	};
 	let _extendToString = function toString(){ return "function extend() { [custom code] }"; };
 	
-	function _defineAccessor(propertyName, accessModifier, getter, setter){
-		
-		let classConstructor = this.constructor,
-			classScope = _scopes.get(classConstructor);
-		
-		if(classScope && classScope.hasOwnProperty(propertyName) && classScope[propertyName].accessModifier !== accessModifier){
-			throw new Error("the access modifier of an existing property cannot be modified");
-		}
-		if(!accessModifier || !xor(accessModifier & PRIVATE, accessModifier & PROTECTED)){
-			throw new Error("invalid access modifier");
-		}
-		
-		if(!classScope){
-			classScope = {};
-			_scopes.set(classConstructor, classScope);
-		}
-		classScope[propertyName].accessModifier = accessModifier;
-		if(accessModifier & STATIC){
-			Object.defineProperty(classScope[propertyName], "value", {
-				get:getter, set:setter, enumerable:true, configurable:true
+	function _generateProtectedAccessorsForSubclass(protectedAccessors_parent = {}){
+		let protectedAccessors_child = {};
+		for(let key in protectedAccessors_parent){
+			Object.defineProperty(protectedAccessors_child, key, {
+				get: ()=>protectedAccessors_parent[key],
+				set: value=>(protectedAccessors_parent[key] = value),
+				enumerable:true, configurable:true
 			});
 		}
-		else{
-			classScope[propertyName].instances = new WeakMap();
-			Object.defineProperty(classScope[propertyName].instances[this], "value", {
-				get:getter, set:setter, enumerable:true, configurable:true
-			});
-		}
-		
-	}
-	function _getAccessors(instance){
-		
-		if(instance === void 0){
-			instance = this;
-		}
-		else if(!(instance instanceof _baseClass)){
-			throw new Error("argument is not an instance of Class");
-		}
-		
-		let requestedScope = _scopes.get(instance.constructor),
-			returnedScope = {};
-		
-		for(let key in requestedScope){
-			let accessModifier = requestedScope[key].accessModifier;
-			if( ((accessModifier & PRIVATE) && this.constructor === instance.constructor)
-			 || ((accessModifier & PROTECTED) && this instanceof instance.constructor) ){
-				if(accessModifier & STATIC){
-					Object.defineProperty(returnedScope, key, {
-						get:function (){ return requestedScope[key].value; },
-						set:function (val){
-							requestedScope[key].value = val;
-							return requestedScope[key].value;
-						},
-						enumerable:true, configurable:true
-					});
-				}
-				else{
-					Object.defineProperty(returnedScope, key, {
-						get:function (){ return requestedScope[key].instances[instance].value; },
-						set:function (val){
-							requestedScope[key].instances[instance].value = val;
-							return requestedScope[key].instances[instance].value;
-						},
-						enumerable:true, configurable:true
-					});
-				}
-			}
-		}
-		
-		return returnedScope;
-		
+		//protectedAccessors_child.foo = 'test';
+		return protectedAccessors_child;
 	}
 	
 	
 	/*** base class ***/
 	
 	//the base Class constructor; it will have two static methods, 'extend' and 'noConflict'
-	let _baseClass = function Class(){}
+	let _baseClass = function Class(){};
 	
 	defineProperty(_baseClass.prototype, "toString", _instanceToString, true, false, true);
 	defineProperty(_baseClass, "toString", _classToString, true, false, true);
-	
-	defineProperty(_baseClass, "accessModifier", {}, false, false, true);
-	defineProperty(_baseClass.accessModifier, "PRIVATE", PRIVATE, false, false, true);
-	defineProperty(_baseClass.accessModifier, "PROTECTED", PROTECTED, false, false, true);
-	defineProperty(_baseClass.accessModifier, "STATIC", STATIC, false, false, true);
 	
 	
 	/**
@@ -162,8 +97,8 @@
 					
 					defineProperty(newInstance, "constructor", newClass, true, false, true);
 				}
-
-				let protectedMembers,
+				
+				let protectedAccessors,
 					superFnCalled = false;
 				let superFn = function Super(){
 					
@@ -171,13 +106,16 @@
 					superFnCalled = true;
 					
 					//initialize the instance using the parent class
-					protectedMembers = newClass.prototype.constructor.apply(newInstance, arguments) || {};
+					protectedAccessors = newClass.prototype.constructor.apply(newInstance, arguments) || {};
 					
-					defineProperty(superFn, "getAccessors", _getAccessors.bind(newInstance), false, false, true);
-					defineProperty(superFn, "defineAccessor", _defineAccessor.bind(newInstance), false, false, true);
+					//add protected value accessors to the Super function
+					Object.defineProperty(superFn, "protected", {
+						get: ()=>protectedAccessors,
+						enumerable:false, configurable:false
+					});
 					
 				}
-		
+				
 				//construct the new instance
 				_initializing = true;
 				//$constructorFn.bind(newInstance, superFn).apply(null, arguments);
@@ -192,14 +130,11 @@
 				//this function is the constructor of the new instance
 					
 					_initializing = false;
-					
-					//In case the 'Super' argument gets referenced elsewhere, remove this since it's not allowed to be used outside of the constructor anyway.
-					delete superFn.defineProtectedMember;
 				}
 				else{
 				//this function is the constructor of a super-class
 					
-					return protectedMembers;
+					return _generateProtectedAccessorsForSubclass(protectedAccessors);
 				}
 				//else return this
 				
