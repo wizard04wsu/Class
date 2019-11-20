@@ -73,7 +73,7 @@ s.whatAmI();		//I am a rectangle. I am a square.
 
 ### Protected members
 
-Additionally, a class can give its descendants protected access to its private variables. Once <code>*Super*()</code> is called within the constructor, the protected properties of its parent class are made available via <code>*Super*.protected</code>. This object will be available to child classes as well; any additions to or deletions of its members that are made here in the constructor will be reflected in the class' descendants.
+Additionally, a class can give its descendants protected access to its private variables. Once <code>*Super*()</code> is called within the constructor, the protected properties of its parent class are made available via <code>*Super*.protected</code>. This object will be available to child classes as well; any additions/deletions/overloads of its members that are made here in the constructor will be reflected in the class' descendants.
 
 #### Example
 
