@@ -118,7 +118,7 @@
 				$constructorFn.apply(newInstance, [superFn].concat([].slice.call(arguments)));	//(This way it doesn't create another new function every time a constructor is run.)
 				
 				if(!superFnCalled && !$warnedAboutSuper){
-					warn(newClass.name+" constructor does not call Super()");
+					warn(newClass.name+" instance is not initialized by its parent class");
 					$warnedAboutSuper = true;	//prevent multiple warnings about the same issue
 				}
 				
