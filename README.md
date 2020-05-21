@@ -21,8 +21,9 @@ This can include any of the following:
 	
 	- **<code>constructorFn</code>** {function}  
 	Initializes new instances of the class.<br><br>
-	**<samp>*options*.constructorFn(*Super*[, *arg1*[, ...]])</samp>**<br><br>
-	<code>*Super*</code> is a function to be used inside `constructorFn` to initialize the class using its parent's constructor. Basically, it acts like the `super` keyword in ES6. It should be called as soon as possible inside the constructor, before using the `this` keyword, to ensure that the instance is properly initialized. Once called, it also provides access to protected members (<a href="#user-content-protected">see below</a>).
+	**<samp>*options*.constructorFn(*Super*[, ...])</samp>**<br><br>
+	**<code>*Super*</code>** {function} is to be called from inside `constructorFn` to initialize the class using its parent's constructor. It should be called as soon as possible inside the constructor, before using the `this` keyword, to ensure that the instance is properly initialized.<br><br>
+	Additionally, <code>*Super*</code> provides access to protected members (<a href="#user-content-protected">see below</a>).
 	
 	- **<code>returnFn</code>** {function}  
 	Returns a value when the constructor is called without using the `new` keyword.
