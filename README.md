@@ -22,8 +22,8 @@ This can include any of the following:
 	- **<code>constructorFn</code>** {function}  
 	Initializes new instances of the class.<br><br>
 	**<samp>*options*.constructorFn(*Super*[, ...])</samp>**<br><br>
-	**<code>*Super*</code>** {function} is to be called from inside `constructorFn` to initialize the class using its parent's constructor. It should be called as soon as possible inside the constructor, before using the `this` keyword, to ensure that the instance is properly initialized.<br><br>
-	Additionally, <code>*Super*</code> provides access to protected members (<a href="#user-content-protected">see below</a>).
+	**<code>*Super*</code>** {function} is to be called from inside `constructorFn` to initialize the class, using the class's parent's constructor. It should be called as soon as possible, before using the `this` keyword, to ensure that the instance is properly initialized.<br><br>
+	Additionally, <code>*Super*</code> provides access to protected members (<a href="#protected-members">see below</a>).
 	
 	- **<code>returnFn</code>** {function}  
 	Returns a value when the constructor is called without using the `new` keyword.
@@ -68,9 +68,9 @@ s.whatAmI();		//I am a rectangle. I am a square.
 
 ```
 
-### <span id="super">Protected members</span>
+### Protected members
 
-Additionally, a class can give its descendants protected access to its private variables. Once <code>*Super*</code> is called within the constructor, the protected properties of its parent class are made available via the <code>*Super*.protected</code> object. This object will be available to child classes as well; any additions/deletions/overloads of its members that are made here in the constructor will be reflected in the class' descendants.
+A class can give its descendants protected access to its private variables. Once <code>*Super*</code> is called within the constructor, the protected properties of its parent class are made available via **<code>*Super*.protected</code>**. This object will be available to child classes as well; any additions/deletions/overloads of its members that are made here in the constructor will be reflected in the class' descendants.
 
 #### Example
 
