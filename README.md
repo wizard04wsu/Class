@@ -1,35 +1,32 @@
 # JavaScript Class Implementation
 
-This no longer works in IE 11.
-
 This implementation allows for classes to be given protected access to items in a super-class.
+
+This is a JavaScript module.
 
 ---
 
 ## Creating subclasses
 
-**<samp style="background-color:transparent">*Class*.extend([*options*])</samp>**
+**<samp>*Class*.extend([*options*])</samp>**
 
 Creates a new class that inherits from the parent class.
 
 Parameters:
-- *options* {object}  
+- **<code>*options*</code>** {object}  
 This can include any of the following:
 	
-	- className {string}  
-	Used as `.name` for the class constructor and in `.toString()` for instances of the class. If not specified, it will be the same as the parent class.
+	- **<code>className</code>** {string}  
+	Used for the `name` property of the class constructor, and in the `toString` method for instances of the class. If not specified, it will be the same as the parent class.
 	
-	- constructorFn {function}  
-	Initializes new instances of the class. A 'Super' function is passed as the first argument; <a href="#user-content-super">see below.</a>
+	- **<code>constructorFn</code>** {function}  
+	Initializes new instances of the class.<br><br>
+	**<samp>*options*.constructorFn(*Super*[, ...])</samp>**<br><br>
+	**<code>*Super*</code>** {function} is to be called from inside `constructorFn` to initialize the class, using the class's parent's constructor. It should be called as soon as possible, before using the `this` keyword, to ensure that the instance is properly initialized.<br><br>
+	Additionally, <code>*Super*</code> provides access to protected members (<a href="#protected-members">see below</a>).
 	
-	- returnFn {function}  
-	Returns a value when the constructor is called without using the 'new' keyword.
-
-### <span id="super">The 'Super' function</span>
-
-The first argument of the 'constructorFn' option is a function required to instantiate the class using the parent class' constructor. Basically, it acts like the 'super' keyword in ES6. It should be called as soon as possible inside the constructor, before using the 'this' keyword, to ensure that the instance is properly initialized.
-
-**<samp id="super">*options*.constructorFn(*Super*[, *arg1*[, ...]])</samp>**
+	- **<code>returnFn</code>** {function}  
+	Returns a value when the constructor is called without using the `new` keyword.
 
 #### Example
 
@@ -73,7 +70,7 @@ s.whatAmI();		//I am a rectangle. I am a square.
 
 ### Protected members
 
-Additionally, a class can give its descendants protected access to its private variables. Once <code>*Super*()</code> is called within the constructor, the protected properties of its parent class are made available via <code>*Super*.protected</code>. This object will be available to child classes as well; any additions/deletions/overloads of its members that are made here in the constructor will be reflected in the class' descendants.
+A class can give its descendants protected access to its private variables. Once <code>*Super*</code> is called within the constructor, the protected properties of its parent class are made available via **<code>*Super*.protected</code>**. This object will be available to child classes as well; any additions/deletions/overloads of its members that are made here in the constructor will be reflected in the class' descendants.
 
 #### Example
 
@@ -131,12 +128,3 @@ let c = new Cuber(5);
 
 c.cube();	//125
 ```
-
-
----
-
-## Avoid conflicts between scripts
-
-**<samp>Class.noConflict()</samp>**
-
-Restores `Class` to what it was before this script replaced it. The return value is this implementation of Class, so it can be assigned to another variable.
