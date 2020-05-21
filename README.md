@@ -1,8 +1,8 @@
 # JavaScript Class Implementation
 
-This no longer works in IE 11.
-
 This implementation allows for classes to be given protected access to items in a super-class.
+
+This is a JavaScript module. The examples assume you are importing it using the name `Class`.
 
 ---
 
@@ -131,12 +131,3 @@ let c = new Cuber(5);
 
 c.cube();	//125
 ```
-
-
----
-
-## Avoid conflicts between scripts
-
-**<samp>Class.noConflict()</samp>**
-
-Restores `Class` to what it was before this script replaced it. The return value is this implementation of Class, so it can be assigned to another variable.
