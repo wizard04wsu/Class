@@ -61,12 +61,12 @@ console.groupCollapsed("D - return function");
 	
 	console.group("Delta class");
 	Delta = Class.extend({className:"Delta",
-		constructorFn:function (Super){
+		constructor:function (Super){
 			Super();
 			this.bar = function (){return "bar"};
 			this.baz = function (){return this.bar()};
 		},
-		returnFn:function (){return "foo"}
+		function:function (){return "foo"}
 	});
 	console.dir(Delta);
 	console.groupEnd();
@@ -93,10 +93,10 @@ console.groupCollapsed("E - return function using 'this'");
 	
 	console.group("Echo class");
 	Echo = Class.extend({className:"Echo",
-		constructorFn:function (){
+		constructor:function (){
 			this.foo = function (){return "foo"};
 		},
-		returnFn:function (){return this.foo}
+		function:function (){return this.foo}
 	});
 	console.dir(Echo);
 	console.groupEnd();
@@ -114,14 +114,14 @@ console.groupCollapsed("F,G - subclass constructor without 'Super()'");
 	
 	console.group("Foxtrot class");
 	Foxtrot = Class.extend({className:"Foxtrot",
-		constructorFn:function(Super){Super();this.foo = "foo"}
+		constructor:function($super){$super();this.foo = "foo"}
 	});
 	console.dir(Foxtrot);
 	console.groupEnd();
 
 	console.group("Golf class");
 	Golf = Class.extend({className:"Golf",
-		constructorFn:function(Super){}
+		constructor:function($super){}
 	});
 	console.dir(Golf);
 	console.groupEnd();
@@ -146,14 +146,14 @@ console.groupCollapsed("H,I - super-class constructor without 'Super()'");
 	
 	console.group("Hotel class");
 	Hotel = Class.extend({className:"Hotel",
-		constructorFn:function(Super){this.foo = "foo"}
+		constructor:function($super){this.foo = "foo"}
 	});
 	console.dir(Hotel);
 	console.groupEnd();
 
 	console.group("India class");
 	India = Hotel.extend({className:"D",
-		constructorFn:function(Super){Super()}
+		constructor:function($super){$super()}
 	});
 	console.dir(India);
 	console.groupEnd();
@@ -177,14 +177,14 @@ console.groupCollapsed("J,K - constructors with 'Super()'");
 	
 	console.group("Juliet class");
 	Juliet = Class.extend({className:"Juliet",
-		constructorFn:function(Super){Super();this.foo = "foo"}
+		constructor:function($super){$super();this.foo = "foo"}
 	});
 	console.dir(Juliet);
 	console.groupEnd();
 
 	console.group("Kilo class");
 	Kilo = Juliet.extend({className:"Kilo",
-		constructorFn:function(Super){Super()}
+		constructor:function($super){$super()}
 	});
 	console.dir(Kilo);
 	console.groupEnd();
@@ -202,16 +202,16 @@ console.groupCollapsed("L,M,N - protected properties");
 	
 	console.group("Lima class");
 	Lima = Class.extend({className:"Lima",
-		constructorFn:function(Super){
-			Super();
+		constructor:function($super){
+			$super();
 			let foo="bar";
 			this.bop = function (){return foo};
-			Object.defineProperty(Super.protected, "foo", {
+			Object.defineProperty($super.protected, "foo", {
 				get:function (){return foo},
 				set:function(v){foo=v},
 				enumerable:true, configurable:true
 			});	//subclasses of Lima will have access to the 'foo' variable
-			Super.protected.foo = foo;
+			$super.protected.foo = foo;
 		}
 	});
 	console.dir(Lima);
@@ -219,10 +219,10 @@ console.groupCollapsed("L,M,N - protected properties");
 
 	console.group("Mike class");
 	Mike = Lima.extend({className:"Mike",
-		constructorFn:function(Super){
+		constructor:function($super){
 			Super();
-			let $protected = Super.protected;
-			console.log('Super.protected', $protected);
+			let $protected = $super.protected;
+			console.log('$super.protected', $protected);
 			console.assert($protected.foo === "bar", $protected.foo);	//Mike constructor has access to the protected foo value
 			$protected.foo = "baz";
 			console.assert($protected.foo === "baz", $protected.foo);	//protected foo value can be changed via the Mike constructor
@@ -242,9 +242,9 @@ console.groupCollapsed("L,M,N - protected properties");
 
 	console.group("November class");
 	November = Mike.extend({className:"November",
-		constructorFn:function(Super){
+		constructor:function($super){
 			Super();
-			console.assert(Super.protected.foo === void 0, Super.protected.foo);	//class November doesn't have access to the protected foo value
+			console.assert($super.protected.foo === void 0, $super.protected.foo);	//class November doesn't have access to the protected foo value
 			console.assert(this.bop() === "baz", this.bop());	//inherited function still has access
 		}
 	});
@@ -256,17 +256,4 @@ console.groupCollapsed("L,M,N - protected properties");
 	console.dir(november1);
 	console.assert(november1.bop() === "baz", november1.bop());	//inherited function still has access
 	console.groupEnd();
-console.groupEnd();
-
-//Class.noConflict()
-console.groupCollapsed("O - noConflict");
-	let Oscar;
-	
-	console.dir(Class);
-	console.assert(Object.getOwnPropertyDescriptor(Class, "noConflict").enumerable === false, Object.getOwnPropertyDescriptor(Class, "noConflict").enumerable);
-	Oscar = Class.noConflict();
-	console.assert(Class === void 0, Class);
-	console.dir(Oscar);
-	console.assert(Object.getOwnPropertyDescriptor(Oscar, "noConflict") === void 0, Object.getOwnPropertyDescriptor(Oscar, "noConflict"));
-	console.assert(Oscar.noConflict === void 0, Oscar.noConflict);
 console.groupEnd();
