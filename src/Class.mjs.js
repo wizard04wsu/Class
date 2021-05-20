@@ -1,6 +1,14 @@
 /* eslint-env es6 */
 // https://github.com/wizard04wsu/Class
 
+function defineNonEnumerableProperty(object, property, value){
+	Object.defineProperty(object, property, {
+		writable: true, enumerable: false, configurable: true,
+		value: value
+	});
+}
+
+
 
 const protectedMembers = Symbol("protected members");
 let _underConstruction = false;
@@ -13,17 +21,9 @@ function Class(){
 	});
 }
 
-Class.prototype.constructor = Class;
+defineNonEnumerableProperty(Class.prototype, "toString", function toString(){ return `[object ${this.constructor.name}]`; });
 
-Object.defineProperty(Class.prototype, "toString", {
-	writable: true, enumerable: false, configurable: true,
-	value: function toString(){ return `[object ${this.constructor.name}]`; }
-});
-
-Object.defineProperty(Class, "extend", {
-	writable: true, enumerable: false, configurable: true,
-	value: extend
-});
+defineNonEnumerableProperty(Class, "extend", extend);
 
 
 /**
@@ -45,7 +45,7 @@ function extend(constructor, applier){
 	
 	const superClass = this;
 	
-	function constructorWrapper(...argumentsList){
+	function newClass(...argumentsList){
 		const newInstance = this;
 		let _$superCalled = false;
 		
@@ -85,13 +85,28 @@ function extend(constructor, applier){
 		return newInstance;
 	}
 	
-	const newClass = new Proxy(constructorWrapper, {
-		construct(target, argumentsList, newTarget){	//target===constructorWrapper, newTarget===the proxy itself (newClass)
+	newClass.prototype = Object.create(superClass.prototype);
+	defineNonEnumerableProperty(newClass.prototype, "constructor", superClass);
+	
+	Object.defineProperty(newClass, "name", {
+		writable: false, enumerable: false, configurable: true,
+		value: constructor.name
+	});
+	
+	defineNonEnumerableProperty(newClass, "toString", function toString(){ return constructor.toString(); });
+	
+	//make extend() a static method of the new class
+	defineNonEnumerableProperty(newClass, "extend", extend);
+	
+	const classProxy = new Proxy(newClass, {
+		construct(target, argumentsList, newTarget){	//target===newClass, newTarget===the proxy itself (classProxy)
 			const newInstance = Reflect.construct(...arguments);
-			newInstance.constructor = newTarget;
+			
+			defineNonEnumerableProperty(newInstance, "constructor", newTarget);
+			
 			return newInstance;
 		},
-		apply(target, thisArg, argumentsList){	//target===constructorWrapper
+		apply(target, thisArg, argumentsList){	//target===newClass
 			if(_underConstruction){
 				return target.apply(thisArg, argumentsList);	//thisArg===the new instance
 			}
@@ -102,28 +117,7 @@ function extend(constructor, applier){
 		}
 	});
 	
-	console.log("newClass:", newClass);
-	newClass.prototype = Object.create(superClass.prototype);
-	newClass.prototype.constructor = superClass;
-	console.log(newClass.prototype instanceof superClass);
-	
-	Object.defineProperty(newClass, "name", {
-		writable: false, enumerable: false, configurable: true,
-		value: constructor.name
-	});
-	
-	Object.defineProperty(newClass, "toString", {
-		writable: true, enumerable: false, configurable: true,
-		value: function toString(){ return constructor.toString(); }
-	});
-	
-	//make extend() a static method of the new class
-	Object.defineProperty(newClass, "extend", {
-		writable: true, enumerable: false, configurable: true,
-		value: extend
-	});
-	
-	return newClass;
+	return classProxy;
 }
 
 

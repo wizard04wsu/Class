@@ -1,9 +1,8 @@
-import Class from "../src/Class.mjs.js"
+import Class from "./Class.mjs.js"
 
 console.group("Class");
 	console.group("class");
 		console.dir(Class);
-		console.log(typeof Class);
 		console.assert(Class.toString() === `function Class(){\r
 	Object.defineProperty(this, protectedMembers, {\r
 		writable: false, enumerable: false, configurable: true,\r
@@ -17,7 +16,7 @@ console.group("Class");
 	console.group("instance");
 		let cl = new Class();
 		console.dir(cl);
-		console.log(typeof cl);
+		//console.log(cl);
 		console.assert(Class.prototype.toString() === "[object Class]", Class.prototype.toString());
 		console.assert(cl.toString() === "[object Class]", cl.toString());
 	console.groupEnd();
@@ -27,7 +26,6 @@ console.group("Alpha");
 	console.group("class");
 		let Alpha = Class.extend(function Alpha($super){ $super(); });
 		console.dir(Alpha);
-		console.log(typeof Alpha);
 		console.assert(Alpha.toString() === "function Alpha($super){ $super(); }", Alpha.toString());
 		console.assert(Alpha.name === "Alpha", Alpha.name);
 		console.assert(Alpha.prototype.toString() === "[object Class]", Alpha.prototype.toString());
@@ -36,7 +34,7 @@ console.group("Alpha");
 	console.group("instance");
 		let a = new Alpha();
 		console.dir(a);
-		console.log(typeof a);
+		//console.log(a);
 		console.assert(a.toString() === "[object Alpha]", a.toString());
 	console.groupEnd();
 console.groupEnd();
@@ -45,7 +43,6 @@ console.group("Bravo");
 	console.group("class");
 		let Bravo = Alpha.extend(function Bravo($super){ $super(); });
 		console.dir(Bravo);
-		console.log(typeof Bravo);
 		console.assert(Bravo.toString() === "function Bravo($super){ $super(); }", Bravo.toString());
 		console.assert(Bravo.name === "Bravo", Bravo.name);
 		console.assert(Bravo.prototype.toString() === "[object Alpha]", Alpha.prototype.toString());
@@ -54,7 +51,7 @@ console.group("Bravo");
 	console.group("instance");
 		let b = new Bravo();
 		console.dir(b);
-		console.log(typeof b);
+		//console.log(b);
 		console.assert(b.toString() === "[object Bravo]", b.toString());
 	console.groupEnd();
 console.groupEnd();
