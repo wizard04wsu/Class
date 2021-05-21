@@ -106,14 +106,6 @@ console.group("Error Traps");
 	}
 	
 	try{
-		X = Class.extend(function X($super){ $super._protected; });
-		x = new X();
-		throw new Error("error was not thrown");
-	}catch(e){
-		console.assert(e.message === "Must call super constructor from derived constructor before accessing protected members", e.message);
-	}
-	
-	try{
 		X = Class.extend(function X($super){ delete $super.foo; });
 		x = new X();
 		throw new Error("error was not thrown");
@@ -128,4 +120,64 @@ console.group("Error Traps");
 	}catch(e){
 		console.assert(e.message === "Class constructor X cannot be invoked without 'new'", e.message);
 	}
+console.groupEnd();
+
+console.group("Inheritance");
+	console.assert(b instanceof Bravo, b);
+	console.assert(b instanceof Alpha, b);
+	console.assert(b instanceof Class, b);
+	console.assert(b.constructor === Bravo, b.constructor);
+	console.assert(Bravo.prototype instanceof Alpha, Bravo.prototype);
+	console.assert(!(Bravo.prototype instanceof Bravo), Bravo.prototype);
+	console.assert(Bravo.prototype.constructor === Alpha, Bravo.prototype.constructor);
+	console.assert(!(a instanceof Bravo), a);
+	console.assert(a instanceof Alpha, a);
+	console.assert(a instanceof Class, a);
+	console.assert(a.constructor === Alpha, a.constructor);
+	console.assert(Alpha.prototype instanceof Class, Alpha.prototype);
+	console.assert(Alpha.prototype.constructor === Class, Alpha.prototype.constructor);
+console.groupEnd();
+
+console.group("Rectangle & Square");
+	let Rectangle = Class.extend(function Rectangle($super, width, height){
+			let protectedMembers = $super();
+			this.width = 1*width||0;
+			this.height = 1*height||0;
+			this.area = function (){ return Math.abs(this.width * this.height); };
+			protectedMembers.color = "red";
+			this.whatAmI = function (){ return `I am a ${protectedMembers.color} rectangle.`; };
+		},
+		(width, height)=>Math.abs((1*width||0) * (1*height||0))
+	);
+	Rectangle.draw = function (obj){ console.log(`Drawing: ${obj.whatAmI()}`); };
+
+	let Square = Rectangle.extend(function Square($super, width){
+			let protectedMembers = $super(width, width);
+			Object.defineProperty(this, "height", {
+				get:function (){ return this.width; },
+				set:function (val){ return this.width = 1*val||0; },
+				enumerable:true, configurable:true
+			});
+			let superIs = this.whatAmI;
+			this.whatAmI = function (){ return `${superIs()} I am a ${protectedMembers.color} square.`; };
+			this.changeColor = function (color){ protectedMembers.color = color; };
+			$super.draw(this);
+		},
+		(width)=>Math.pow(1*width||0, 2)
+	);
+
+	let s = new Square(3);
+	
+	console.assert(s.toString() === "[object Square]", s.toString());
+	console.assert(s.width === 3, s.width);
+	console.assert(s.height === 3, s.height);
+	console.assert(s.area() === 9, s.area());
+	s.height = 4;
+	console.assert(s.width === 4, s.width);
+	console.assert(s.height === 4, s.height);
+	console.assert(s.area() === 16, s.area());
+	console.assert(s.whatAmI() === "I am a red rectangle. I am a red square.", s.whatAmI());
+	console.assert(s.color === void 0, s.color);
+	s.changeColor("blue");
+	console.assert(s.whatAmI() === "I am a blue rectangle. I am a blue square.", s.whatAmI());
 console.groupEnd();

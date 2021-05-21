@@ -55,17 +55,8 @@ function extend(constructor, applier){
 				_$superCalled = true;
 				
 				target.apply(newInstance, argumentsList);
-			},
-			get(target, property, receiver){	//target===superClass
-				if(property === "_protected"){
-					if(!_$superCalled) throw new ReferenceError("Must call super constructor from derived constructor before accessing protected members");
-					return target[protectedMembers];
-				}
-				return Reflect.get(...arguments);
-			},
-			set(target, property, value, receiver){	//target===superClass
-				if(property === "_protected") return false;
-				return Reflect.set(...arguments);
+				
+				return newInstance[protectedMembers];
 			},
 			deleteProperty(target, property){	//target===superClass
 				throw new ReferenceError("invalid delete involving super constructor");
