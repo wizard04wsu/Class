@@ -65,28 +65,28 @@ console.group("Error Traps");
 		Y = X.extend(function X($super){ $super(); });
 		throw new Error("error was not thrown");
 	}catch(e){
-		console.assert(e.message === "extend requires that 'this' be a Class constructor", e.message);
+		console.assert(e.message === "'extend' method requires that 'this' be a Class constructor", e.message);
 	}
 	
 	try{
 		X = Class.extend();
 		throw new Error("error was not thrown");
 	}catch(e){
-		console.assert(e.message === "constructor is not a function", e.message);
+		console.assert(e.message === "'init' is not a function", e.message);
 	}
 	
 	try{
 		X = Class.extend(function (){});
 		throw new Error("error was not thrown");
 	}catch(e){
-		console.assert(e.message === "constructor must be a named function", e.message);
+		console.assert(e.message === "'init' must be a named function", e.message);
 	}
 	
 	try{
 		X = Class.extend(function X(){}, 0);
 		throw new Error("error was not thrown");
 	}catch(e){
-		console.assert(e.message === "applier is not a function", e.message);
+		console.assert(e.message === "'call' is not a function", e.message);
 	}
 	
 	try{
@@ -94,7 +94,7 @@ console.group("Error Traps");
 		x = new X();
 		throw new Error("error was not thrown");
 	}catch(e){
-		console.assert(e.message === "Must call super constructor before returning from derived constructor", e.message);
+		console.assert(e.message === "must call super constructor before returning from derived constructor", e.message);
 	}
 	
 	try{
@@ -102,7 +102,7 @@ console.group("Error Traps");
 		x = new X();
 		throw new Error("error was not thrown");
 	}catch(e){
-		console.assert(e.message === "Super constructor may only be called once", e.message);
+		console.assert(e.message === "super constructor may only be called once", e.message);
 	}
 	
 	try{
