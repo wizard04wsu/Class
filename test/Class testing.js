@@ -4,6 +4,7 @@ console.group("Class");
 	console.group("class");
 		console.dir(Class);
 		console.assert(Class.toString() === `function Class(){\r
+	_instanceIsUnderConstruction = false;\r
 	Object.defineProperty(this, protectedMembers, {\r
 		writable: false, enumerable: false, configurable: true,\r
 		value: {}\r
@@ -102,7 +103,7 @@ console.group("Error Traps");
 		x = new X();
 		throw new Error("error was not thrown");
 	}catch(e){
-		console.assert(e.message === "super constructor may only be called once", e.message);
+		console.assert(e.message === "super constructor may be called only once during execution of derived constructor", e.message);
 	}
 	
 	try{
@@ -111,6 +112,45 @@ console.group("Error Traps");
 		throw new Error("error was not thrown");
 	}catch(e){
 		console.assert(e.message === "invalid delete involving super constructor", e.message);
+	}
+	
+	try{
+		X = Class.extend(function X($super){ new $super(); });
+		x = new X();
+		throw new Error("error was not thrown");
+	}catch(e){
+		console.assert(e.message === "unexpected use of 'new' keyword", e.message);
+	}
+	
+	/*try{
+		X = Class.extend(function X($super){ this; $super(); });
+		x = new X();
+		throw new Error("error was not thrown");
+	}catch(e){
+		console.assert(e.message === "must call super constructor before accessing 'this'", e.message);
+	}*/
+	
+	try{
+		X = Class.extend(function X($super){ this(); $super(); });
+		x = new X();
+		throw new Error("error was not thrown");
+	}catch(e){
+		console.assert(e.message === "this is not a function", e.message);
+	}
+	
+	/*try{
+		X = Class.extend(function X($super){ this.test; $super(); });
+		x = new X();
+		throw new Error("error was not thrown");
+	}catch(e){
+		console.assert(e.message === "must call super constructor before accessing 'this'", e.message);
+	}*/
+	
+	try{
+		X = Class.extend(function X($super){ $super(); this; });
+		x = new X();
+	}catch(e){
+		throw e;
 	}
 	
 	try{
@@ -139,6 +179,7 @@ console.group("Inheritance");
 console.groupEnd();
 
 console.group("Rectangle & Square");
+	let testCount = 0;
 	let Rectangle = Class.extend(function Rectangle($super, width, height){
 			let protectedMembers = $super();
 			this.width = 1*width||0;
@@ -146,6 +187,18 @@ console.group("Rectangle & Square");
 			this.area = function (){ return Math.abs(this.width * this.height); };
 			protectedMembers.color = "red";
 			this.whatAmI = function (){ return `I am a ${protectedMembers.color} rectangle.`; };
+			
+			if(testCount++ < 1){
+				let expectedArea = Math.abs((1*width||0) * (1*height||0)),
+					area;
+				try{
+					area = Rectangle($super, width, height);
+				}catch(e){
+					console.assert(e.message === "super constructor may be called only once during execution of derived constructor", e.message);
+				}
+				area = this.constructor(width, height);
+				console.assert(area === expectedArea, area, this.constructor);
+			}
 		},
 		(width, height)=>Math.abs((1*width||0) * (1*height||0))
 	);

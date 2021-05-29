@@ -18,6 +18,7 @@ let _instanceIsUnderConstruction = false;
  * @class
  */
 const BaseClass = function Class(){
+	_instanceIsUnderConstruction = false;
 	Object.defineProperty(this, protectedMembers, {
 		writable: false, enumerable: false, configurable: true,
 		value: {}
@@ -65,6 +66,8 @@ function extend(init, call){
 	 * @class
 	 * @augments ParentClass
 	 * @private
+	 * @throws {ReferenceError} - must call super constructor in derived constructor before accessing 'this'
+	 * @throws {ReferenceError} - unexpected use of 'new' keyword
 	 * @throws {ReferenceError} - super constructor may only be called once
 	 * @throws {ReferenceError} - invalid delete involving super constructor
 	 * @throws {ReferenceError} - must call super constructor before returning from derived constructor
@@ -74,10 +77,14 @@ function extend(init, call){
 		let _$superCalled = false;
 		
 		const $super = new Proxy(ParentClass, {
+			construct(target, argumentsList, newTarget){	//target===ParentClass, newTarget===the proxy itself ($super)
+				throw new ReferenceError("unexpected use of 'new' keyword");
+			},
 			apply(target, thisArg, argumentsList){	//target===ParentClass
-				if(_$superCalled) throw new ReferenceError("super constructor may only be called once");
+				if(_$superCalled) throw new ReferenceError("super constructor may be called only once during execution of derived constructor");
 				_$superCalled = true;
 				
+				_instanceIsUnderConstruction = true;
 				target.apply(newInstance, argumentsList);
 				
 				return newInstance[protectedMembers];
@@ -88,13 +95,7 @@ function extend(init, call){
 			}
 		});
 		
-		_instanceIsUnderConstruction = true;
-		try{
-			init.apply(newInstance, [$super, ...argumentsList]);
-		}
-		finally{
-			_instanceIsUnderConstruction = false;
-		}
+		init.apply(newInstance, [$super, ...argumentsList]);
 		
 		if(!_$superCalled) throw new ReferenceError("must call super constructor before returning from derived constructor");
 		
@@ -119,21 +120,24 @@ function extend(init, call){
 	//@throws {TypeError} if called without the `new` keyword and without the `{@link call}` argument.
 	const proxyForChildClass = new Proxy(ChildClass, {
 		construct(target, argumentsList, newTarget){	//target===ChildClass, newTarget===the proxy itself (proxyForChildClass)
+			_instanceIsUnderConstruction = false;
 			const newInstance = Reflect.construct(...arguments);
 			
 			defineNonEnumerableProperty(newInstance, "constructor", newTarget);
 			
 			return newInstance;
 		},
-		apply(target, thisArg, argumentsList){	//target===ChildClass
+		apply(target, thisArg, argumentsList){	//target===ChildClass or a super class
 			if(_instanceIsUnderConstruction){
 				//the 'new' keyword was used, and this proxy handler is for the constructor of a super class
 				
+				_instanceIsUnderConstruction = false;
 				return target.apply(thisArg, argumentsList);	//thisArg===the new instance
 			}
 			else if(call){
-				//the 'new' keyword was not used, and a 'call' function was passed
-				return call.apply(thisArg, argumentsList);
+				//the 'new' keyword was not used, and a 'call' function was passed to 'extend'
+				
+				return call.apply(thisArg, argumentsList);	//thisArg==='this' in the the caller's context
 			}
 			throw new TypeError(`Class constructor ${className} cannot be invoked without 'new'`);
 		}
