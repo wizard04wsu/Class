@@ -77,7 +77,7 @@ console.log((new Rectangle(2, 3)).toString());	// [object Rectangle]
 console.log(Rectangle(2, 3));		// area = 6
 ```
 
-### Inherit from a parent class
+### Inherit from a superclass
 
 ```javascript
 const Rectangle = Class.extend(function Rectangle($super, width, height){
@@ -95,7 +95,7 @@ let s = new Square(2);
 console.log(s.dimensions());	// 2 x 2
 ```
 
-### Use static methods of a parent class
+### Use static methods of the parent class
 
 ```javascript
 const Rectangle = Class.extend(function Rectangle($super, width, height){
@@ -119,4 +119,44 @@ console.log(s.area());				// 4
 
 ### Use protected members
 
-TODO
+```javascript
+const Rectangle = Class.extend(function Rectangle($super, width, height){
+	const prot = $super();
+	
+	prot.width = width;
+	prot.height = height;
+	
+	Object.defineProperty(this, "width", {
+		enumerable: true, configurable: true,
+		get(){ return prot.width; },
+		set(width){ return prot.width = width; }
+	});
+	Object.defineProperty(this, "height", {
+		enumerable: true, configurable: true,
+		get(){ return prot.height; },
+		set(height){ return prot.height = height; }
+	});
+	
+	this.dimensions = ()=>prot.width+" x "+prot.height;
+});
+
+const Square = Rectangle.extend(function Square($super, width){
+	const prot = $super(width, width);
+	
+	Object.defineProperty(this, "width", {
+		enumerable: true, configurable: true,
+		get(){ return prot.width; },
+		set(width){ return prot.width = prot.height = width; }
+	});
+	Object.defineProperty(this, "height", {
+		enumerable: true, configurable: true,
+		get(){ return prot.height; },
+		set(height){ return prot.height = prot.width = height; }
+	});
+});
+
+let s = new Square(2);
+console.log(s.dimensions());	// 2 x 2
+s.height = 3;
+console.log(s.dimensions());	// 3 x 3
+```

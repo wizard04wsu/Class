@@ -255,6 +255,7 @@ console.group("Readme Examples");
 		console.assert(r.toString() === "[object Rectangle]", r.toString());
 		console.assert(r.area() === 6, r.area());
 	console.groupEnd();
+	
 	console.group("Use an applier function");
 		Rectangle = Class.extend(function Rectangle($super, width, height){
 				$super();
@@ -266,6 +267,7 @@ console.group("Readme Examples");
 		console.assert((new Rectangle(2, 3)).toString() === "[object Rectangle]", (new Rectangle(2, 3)).toString());
 		console.assert(Rectangle(2, 3) === "area = 6", Rectangle(2, 3));
 	console.groupEnd();
+	
 	console.group("Inherit from a parent class");
 		Rectangle = Class.extend(function Rectangle($super, width, height){
 			$super();
@@ -281,6 +283,7 @@ console.group("Readme Examples");
 
 		console.assert(s.dimensions() === "2 x 2", s.dimensions());
 	console.groupEnd();
+	
 	console.group("Use static methods of a parent class");
 		Rectangle = Class.extend(function Rectangle($super, width, height){
 			$super();
@@ -300,5 +303,47 @@ console.group("Readme Examples");
 
 		console.assert(Rectangle.area(2, 2) === 4, Rectangle.area(2, 2));
 		console.assert(s.area() === 4, s.area());
+	console.groupEnd();
+	
+	console.group("Use protected members");
+		Rectangle = Class.extend(function Rectangle($super, width, height){
+			const prot = $super();
+			
+			prot.width = width;
+			prot.height = height;
+			
+			Object.defineProperty(this, "width", {
+				enumerable: true, configurable: true,
+				get(){ return prot.width; },
+				set(width){ return prot.width = width; }
+			});
+			Object.defineProperty(this, "height", {
+				enumerable: true, configurable: true,
+				get(){ return prot.height; },
+				set(height){ return prot.height = height; }
+			});
+			
+			this.dimensions = ()=>prot.width+" x "+prot.height;
+		});
+
+		Square = Rectangle.extend(function Square($super, width){
+			const prot = $super(width, width);
+			
+			Object.defineProperty(this, "width", {
+				enumerable: true, configurable: true,
+				get(){ return prot.width; },
+				set(width){ return prot.width = prot.height = width; }
+			});
+			Object.defineProperty(this, "height", {
+				enumerable: true, configurable: true,
+				get(){ return prot.height; },
+				set(height){ return prot.height = prot.width = height; }
+			});
+		});
+
+		s = new Square(2);
+		console.assert(s.dimensions() === "2 x 2", s.dimensions());
+		s.height = 3;
+		console.assert(s.dimensions() === "3 x 3", s.dimensions());
 	console.groupEnd();
 console.groupEnd();
