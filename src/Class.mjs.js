@@ -5,10 +5,10 @@
 export { BaseClass as default };
 
 
-//key of a property of Class instances; the property is an object with the instance's protected members
+//for a Class instance property, an object with the instance's protected members
 const protectedMembers = Symbol("protected members");
 
-//state: true iif an instance of a class is being constructed
+//state: true when indicating that a class is being constructed
 let _instanceIsUnderConstruction = false;
 
 
