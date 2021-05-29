@@ -131,6 +131,14 @@ console.group("Error Traps");
 	}*/
 	
 	try{
+		X = Class.extend(function X($super){ this.test; $super(); });
+		x = new X();
+		throw new Error("error was not thrown");
+	}catch(e){
+		console.assert(e.message === "must call super constructor before accessing 'this'", e.message);
+	}
+	
+	try{
 		X = Class.extend(function X($super){ this(); $super(); });
 		x = new X();
 		throw new Error("error was not thrown");
@@ -139,11 +147,11 @@ console.group("Error Traps");
 	}
 	
 	try{
-		X = Class.extend(function X($super){ this.test; $super(); });
+		X = Class.extend(function X($super){ new this(); $super(); });
 		x = new X();
 		throw new Error("error was not thrown");
 	}catch(e){
-		console.assert(e.message === "must call super constructor before accessing 'this'", e.message);
+		console.assert(e.message === "this is not a constructor", e.message);
 	}
 	
 	try{

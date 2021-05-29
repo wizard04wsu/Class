@@ -96,11 +96,13 @@ function extend(init, call){
 			}
 		});
 		
+		//I don't believe there's a way to trap access to 'this', but we can at least trap access to its members:
 		function denyAccessToKeywordThis(){
 			if(!_$superCalled) throw new ReferenceError("must call super constructor before accessing 'this'");
 		}
 		let proxyForKeywordThis = new Proxy(newInstance, {
-			apply(){                    denyAccessToKeywordThis(); return Reflect.apply(...arguments); },
+			//apply(){                    denyAccessToKeywordThis(); return Reflect.apply(...arguments); },
+			//construct(){                denyAccessToKeywordThis(); return Reflect.construct(...arguments); },
 			defineProperty(){           denyAccessToKeywordThis(); return Reflect.defineProperty(...arguments); },
 			deleteProperty(){           denyAccessToKeywordThis(); return Reflect.deleteProperty(...arguments); },
 			get(){                      denyAccessToKeywordThis(); return Reflect.get(...arguments); },
