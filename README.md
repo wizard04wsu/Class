@@ -53,14 +53,14 @@ An object whose members are shared among all the <i><code>initializer</code></i>
 ```javascript
 const MyClass = Class.extend(function Rectangle($super, width, height){
 	$super();
-	this.area = function (){ return width * height; };
+	this.dimensions = ()=>width+" x "+height;
 });
 
 let r = new MyClass(2, 3);
 
-console.log(MyClass.name);	// Rectangle
-console.log(r.toString());	// [object Rectangle]
-console.log(r.area());		// 6
+console.log(MyClass.name);		// Rectangle
+console.log(r.toString());		// [object Rectangle]
+console.log(r.dimensions());	// 2 x 3
 ```
 
 ### Inherit from a parent class
@@ -84,15 +84,16 @@ console.log(s.dimensions());	// 2 x 2
 ### Use static methods of a parent class
 
 ```javascript
-const Rectangle = Class.extend(function Rectangle($super){
+const Rectangle = Class.extend(function Rectangle($super, width, height){
 	$super();
+	this.dimensions = ()=>width+" x "+height;
 });
 Rectangle.area = function (width, height){ return width * height; };
 
 const Square = Rectangle.extend(function Square($super, width){
-	$super();
+	$super(width, width);
 	this.area = function (){
-		return $super.area(width, width);	//using `$super` is equivalent to using `Rectangle`
+		return $super.area(width, width);	//here, using `$super` as an object is equivalent to using `Rectangle`
 	};
 });
 

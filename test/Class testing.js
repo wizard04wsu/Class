@@ -246,14 +246,14 @@ console.group("Readme Examples");
 	console.group("Create a new class");
 		let MyClass = Class.extend(function Rectangle($super, width, height){
 			$super();
-			this.area = function (){ return width * height; };
+			this.dimensions = ()=>width+" x "+height;
 		});
 
 		let r = new MyClass(2, 3);
 
 		console.assert(MyClass.name === "Rectangle", MyClass.name);
 		console.assert(r.toString() === "[object Rectangle]", r.toString());
-		console.assert(r.area() === 6, r.area());
+		console.assert(r.dimensions() === "2 x 3", r.dimensions());
 	console.groupEnd();
 	console.group("Inherit from a parent class");
 		Rectangle = Class.extend(function Rectangle($super, width, height){
@@ -271,16 +271,17 @@ console.group("Readme Examples");
 		console.assert(s.dimensions() === "2 x 2", s.dimensions());
 	console.groupEnd();
 	console.group("Use static methods of a parent class");
-		Rectangle = Class.extend(function Rectangle($super){
+		Rectangle = Class.extend(function Rectangle($super, width, height){
 			$super();
+			this.dimensions = ()=>width+" x "+height;
 		});
 		Rectangle.area = function (width, height){ return width * height; };
 
 		Square = Rectangle.extend(function Square($super, width){
 			console.assert($super.area(3, 3) === 9, $super.area(3, 3));
-			$super();
+			$super(width, width);
 			this.area = function (){
-				return $super.area(width, width);	//using `$super` is equivalent to using `Rectangle`
+				return $super.area(width, width);	//here, using `$super` as an object is equivalent to using `Rectangle`
 			};
 		});
 
