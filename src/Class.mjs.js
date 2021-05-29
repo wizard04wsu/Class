@@ -45,7 +45,7 @@ defineNonEnumerableProperty(BaseClass, "extend", extend);
 function extend(init, call){
 	/**
 	 * @typedef {function} initializer
-	 * @param {function} $super - The parent class's constructor, bound as the first argument. It is to be used like the `super` keyword. It *must* be called within the constructor, and it *should* be called before using `this`.
+	 * @param {function} $super - The parent class's constructor, bound as the first argument. It is to be used like the `super` keyword. It *must* be called exactly once during the execution of the constructor, before any use of the `this` keyword.
 	 * @param {...*} args
 	 * @returns {object} - An object providing access to protected members.
 	 */
@@ -66,12 +66,12 @@ function extend(init, call){
 	 * @class
 	 * @augments ParentClass
 	 * @private
-	 * @throws {ReferenceError} - unexpected use of 'new' keyword
+	 * @throws {ReferenceError} - unexpected use of `new` keyword
 	 * @throws {ReferenceError} - super constructor may be called only once during execution of derived constructor
 	 * @throws {ReferenceError} - invalid delete involving super constructor
-	 * @throws {ReferenceError} - must call super constructor before accessing 'this'
+	 * @throws {ReferenceError} - must call super constructor before accessing `this`
 	 * @throws {ReferenceError} - must call super constructor before returning from derived constructor
-	 * @throws {ReferenceError} - class constructor cannot be invoked without 'new'
+	 * @throws {ReferenceError} - class constructor cannot be invoked without `new`
 	 */
 	function ChildClass(...argumentsList){
 		const newInstance = this;
@@ -96,7 +96,7 @@ function extend(init, call){
 			}
 		});
 		
-		//I don't believe there's a way to trap access to 'this', but we can at least trap access to its members:
+		//I don't believe there's a way to trap access to `this`, but we can at least trap access to its members:
 		function denyAccessToKeywordThis(){
 			if(!_$superCalled) throw new ReferenceError("must call super constructor before accessing 'this'");
 		}
@@ -138,7 +138,7 @@ function extend(init, call){
 	defineNonEnumerableProperty(ChildClass, "extend", extend);
 	
 	//use a Proxy to distinguish calls to ChildClass between those that do and do not use the `new` keyword
-	//@throws {TypeError} if called without the `new` keyword and without the `{@link call}` argument.
+	//@throws {TypeError} if called without the `new` keyword and without the '{@link call}' argument.
 	const proxyForChildClass = new Proxy(ChildClass, {
 		construct(target, argumentsList, newTarget){	//target===ChildClass, newTarget===the proxy itself (proxyForChildClass)
 			_instanceIsUnderConstruction = false;
@@ -150,15 +150,15 @@ function extend(init, call){
 		},
 		apply(target, thisArg, argumentsList){	//target===ChildClass or a super class
 			if(_instanceIsUnderConstruction){
-				//the 'new' keyword was used, and this proxy handler is for the constructor of a super class
+				//the `new` keyword was used, and this proxy handler is for the constructor of a super class
 				
 				_instanceIsUnderConstruction = false;
 				return target.apply(thisArg, argumentsList);	//thisArg===the new instance
 			}
 			else if(call){
-				//the 'new' keyword was not used, and a 'call' function was passed to 'extend'
+				//the `new` keyword was not used, and a 'call' function was passed to 'extend'
 				
-				return call.apply(thisArg, argumentsList);	//thisArg==='this' in the the caller's context
+				return call.apply(thisArg, argumentsList);	//thisArg===`this` in the the caller's context
 			}
 			throw new TypeError(`class constructor ${className} cannot be invoked without 'new'`);
 		}
