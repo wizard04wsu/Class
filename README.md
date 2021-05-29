@@ -18,7 +18,7 @@ Class.extend(initializer, applier)
 ### Parameters
 
 [**<code>*initializer*</code>**](#readme-initializer)  
-A function to be executed by the constructor, during the process of constructing a new instance of the child class. The name of the *<code>initializer</code>* is used as the name of the class. 
+A function to be executed by the constructor during the process of constructing a new instance of the child class. The name of the *<code>initializer</code>* is used as the name of the class.
 
 **<code>*applier*</code>** *optional*  
 A handler function for when the class is called without using the `new` keyword. Default behavior is to throw a [TypeError](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError).
@@ -46,10 +46,60 @@ A [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Glob
 **<code>*protectedMembers*</code>**  
 An object whose members are shared among all the <i><code>initializer</code></i>s that are executed when a new instance of the class is created. This allows a protected value defined in the *<code>initializer</code>* of a class to be accessed and modified within the *<code>initializer</code>* of a derivative class directly, without needing static getters and setters.
 
-## Description
-
-TODO
-
 ## Examples
+
+### Create a new class
+
+```javascript
+const MyClass = Class.extend(function Rectangle($super, width, height){
+	$super();
+	this.area = function (){ return width * height; };
+});
+
+let r = new MyClass(2, 3);
+
+console.log(MyClass.name);	// Rectangle
+console.log(r.toString());	// [object Rectangle]
+console.log(r.area());		// 6
+```
+
+### Inherit from a parent class
+
+```javascript
+const Rectangle = Class.extend(function Rectangle($super, width, height){
+	$super();
+	this.dimensions = ()=>width+" x "+height;
+});
+
+const Square = Rectangle.extend(function Square($super, width){
+	$super(width, width);
+	//this.dimensions() is inherited from Rectangle
+});
+
+let s = new Square(2);
+
+console.log(s.dimensions());	// 2 x 2
+```
+
+### Use static methods of a parent class
+
+```javascript
+const Rectangle = Class.extend(function Rectangle($super){
+	$super();
+});
+Rectangle.area = function (width, height){ return width * height; };
+
+const Square = Rectangle.extend(function Square($super, width){
+	$super();
+	this.area = function (){
+		return $super.area(width, width);	//using `$super` is equivalent to using `Rectangle`
+	};
+});
+
+let s = new Square(2);
+
+console.log(Rectangle.area(2, 2));	// 4
+console.log(s.area());				// 4
+```
 
 TODO

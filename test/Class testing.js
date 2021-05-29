@@ -18,7 +18,6 @@ console.group("Class");
 		let cl = new Class();
 		console.dir(cl);
 		//console.log(cl);
-		console.assert(Class.prototype.toString() === "[object Class]", Class.prototype.toString());
 		console.assert(cl.toString() === "[object Class]", cl.toString());
 	console.groupEnd();
 console.groupEnd();
@@ -241,4 +240,53 @@ console.group("Rectangle & Square");
 	console.assert(s.color === void 0, s.color);
 	s.changeColor("blue");
 	console.assert(s.whatAmI() === "I am a blue rectangle. I am a blue square.", s.whatAmI());
+console.groupEnd();
+
+console.group("Readme Examples");
+	console.group("Create a new class");
+		let MyClass = Class.extend(function Rectangle($super, width, height){
+			$super();
+			this.area = function (){ return width * height; };
+		});
+
+		let r = new MyClass(2, 3);
+
+		console.assert(MyClass.name === "Rectangle", MyClass.name);
+		console.assert(r.toString() === "[object Rectangle]", r.toString());
+		console.assert(r.area() === 6, r.area());
+	console.groupEnd();
+	console.group("Inherit from a parent class");
+		Rectangle = Class.extend(function Rectangle($super, width, height){
+			$super();
+			this.dimensions = ()=>width+" x "+height;
+		});
+
+		Square = Rectangle.extend(function Square($super, width){
+			$super(width, width);
+			//this.dimensions() is inherited from Rectangle
+		});
+
+		s = new Square(2);
+
+		console.assert(s.dimensions() === "2 x 2", s.dimensions());
+	console.groupEnd();
+	console.group("Use static methods of a parent class");
+		Rectangle = Class.extend(function Rectangle($super){
+			$super();
+		});
+		Rectangle.area = function (width, height){ return width * height; };
+
+		Square = Rectangle.extend(function Square($super, width){
+			console.assert($super.area(3, 3) === 9, $super.area(3, 3));
+			$super();
+			this.area = function (){
+				return $super.area(width, width);	//using `$super` is equivalent to using `Rectangle`
+			};
+		});
+
+		s = new Square(2);
+
+		console.assert(Rectangle.area(2, 2) === 4, Rectangle.area(2, 2));
+		console.assert(s.area() === 4, s.area());
+	console.groupEnd();
 console.groupEnd();
