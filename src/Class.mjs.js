@@ -66,11 +66,12 @@ function extend(init, call){
 	 * @class
 	 * @augments ParentClass
 	 * @private
-	 * @throws {ReferenceError} - must call super constructor in derived constructor before accessing 'this'
 	 * @throws {ReferenceError} - unexpected use of 'new' keyword
-	 * @throws {ReferenceError} - super constructor may only be called once
+	 * @throws {ReferenceError} - super constructor may be called only once during execution of derived constructor
 	 * @throws {ReferenceError} - invalid delete involving super constructor
 	 * @throws {ReferenceError} - must call super constructor before returning from derived constructor
+	 * #@throws {ReferenceError} - must call super constructor before accessing 'this'
+	 * @throws {ReferenceError} - class constructor cannot be invoked without 'new'
 	 */
 	function ChildClass(...argumentsList){
 		const newInstance = this;
@@ -139,7 +140,7 @@ function extend(init, call){
 				
 				return call.apply(thisArg, argumentsList);	//thisArg==='this' in the the caller's context
 			}
-			throw new TypeError(`Class constructor ${className} cannot be invoked without 'new'`);
+			throw new TypeError(`class constructor ${className} cannot be invoked without 'new'`);
 		}
 	});
 	
