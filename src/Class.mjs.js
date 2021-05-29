@@ -69,8 +69,8 @@ function extend(init, call){
 	 * @throws {ReferenceError} - unexpected use of 'new' keyword
 	 * @throws {ReferenceError} - super constructor may be called only once during execution of derived constructor
 	 * @throws {ReferenceError} - invalid delete involving super constructor
+	 * @throws {ReferenceError} - must call super constructor before accessing 'this'
 	 * @throws {ReferenceError} - must call super constructor before returning from derived constructor
-	 * #@throws {ReferenceError} - must call super constructor before accessing 'this'
 	 * @throws {ReferenceError} - class constructor cannot be invoked without 'new'
 	 */
 	function ChildClass(...argumentsList){
@@ -96,7 +96,25 @@ function extend(init, call){
 			}
 		});
 		
-		init.apply(newInstance, [$super, ...argumentsList]);
+		function denyAccessToKeywordThis(){
+			if(!_$superCalled) throw new ReferenceError("must call super constructor before accessing 'this'");
+		}
+		let proxyForKeywordThis = new Proxy(newInstance, {
+			apply(){                    denyAccessToKeywordThis(); return Reflect.apply(...arguments); },
+			defineProperty(){           denyAccessToKeywordThis(); return Reflect.defineProperty(...arguments); },
+			deleteProperty(){           denyAccessToKeywordThis(); return Reflect.deleteProperty(...arguments); },
+			get(){                      denyAccessToKeywordThis(); return Reflect.get(...arguments); },
+			getOwnPropertyDescriptor(){ denyAccessToKeywordThis(); return Reflect.getOwnPropertyDescriptor(...arguments); },
+			getPrototypeOf(){           denyAccessToKeywordThis(); return Reflect.getPrototypeOf(...arguments); },
+			has(){                      denyAccessToKeywordThis(); return Reflect.has(...arguments); },
+			isExtensible(){             denyAccessToKeywordThis(); return Reflect.isExtensible(...arguments); },
+			ownKeys(){                  denyAccessToKeywordThis(); return Reflect.ownKeys(...arguments); },
+			preventExtensions(){        denyAccessToKeywordThis(); return Reflect.preventExtensions(...arguments); },
+			set(){                      denyAccessToKeywordThis(); return Reflect.set(...arguments); },
+			setPrototypeOf(){           denyAccessToKeywordThis(); return Reflect.setPrototypeOf(...arguments); }
+		});
+		
+		init.apply(proxyForKeywordThis, [$super, ...argumentsList]);
 		
 		if(!_$superCalled) throw new ReferenceError("must call super constructor before returning from derived constructor");
 		

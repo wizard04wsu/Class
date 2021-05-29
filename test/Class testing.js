@@ -138,13 +138,13 @@ console.group("Error Traps");
 		console.assert(e.message === "this is not a function", e.message);
 	}
 	
-	/*try{
+	try{
 		X = Class.extend(function X($super){ this.test; $super(); });
 		x = new X();
 		throw new Error("error was not thrown");
 	}catch(e){
 		console.assert(e.message === "must call super constructor before accessing 'this'", e.message);
-	}*/
+	}
 	
 	try{
 		X = Class.extend(function X($super){ $super(); this; });
@@ -158,7 +158,7 @@ console.group("Error Traps");
 		x = X();
 		throw new Error("error was not thrown");
 	}catch(e){
-		console.assert(e.message === "Class constructor X cannot be invoked without 'new'", e.message);
+		console.assert(e.message === "class constructor X cannot be invoked without 'new'", e.message);
 	}
 console.groupEnd();
 
