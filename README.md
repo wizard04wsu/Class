@@ -52,20 +52,29 @@ An object whose members are shared among all the <i><code>initializer</code></i>
 
 ```javascript
 const MyClass = Class.extend(function Rectangle($super, width, height){
+	$super();
+	this.dimensions = ()=>width+" x "+height;
+});
+
+let r = new MyClass(2, 3);
+
+console.log(MyClass.name);		// Rectangle
+console.log(r.toString());		// [object Rectangle]
+console.log(r.dimensions());	// 2 x 3
+```
+
+### Use an applier function
+
+```javascript
+const Rectangle = Class.extend(function Rectangle($super, width, height){
 		$super();
 		this.dimensions = ()=>width+" x "+height;
 	},
 	(width, height)=>"area = "+(width*height)	//applier function for when Rectangle() is called without using `new`
 );
 
-let r = new MyClass(2, 3);
-
-console.log(MyClass.name);		// Rectangle
-
-console.log(r.toString());		// [object Rectangle]
-console.log(r.dimensions());	// 2 x 3
-
-console.log(MyClass(2, 3));		// area = 6
+console.log((new Rectangle(2, 3)).toString());	// [object Rectangle]
+console.log(Rectangle(2, 3));		// area = 6
 ```
 
 ### Inherit from a parent class
@@ -107,5 +116,7 @@ let s = new Square(2);
 console.log(Rectangle.area(2, 2));	// 4
 console.log(s.area());				// 4
 ```
+
+### Use protected members
 
 TODO

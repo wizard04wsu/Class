@@ -245,18 +245,26 @@ console.groupEnd();
 console.group("Readme Examples");
 	console.group("Create a new class");
 		let MyClass = Class.extend(function Rectangle($super, width, height){
-				$super();
-				this.dimensions = ()=>width+" x "+height;
-			},
-			(width, height)=>"area = "+(width*height)	//applier function for when Rectangle() is called without using `new`
-		);
+			$super();
+			this.area = function (){ return width * height; };
+		});
 
 		let r = new MyClass(2, 3);
 
 		console.assert(MyClass.name === "Rectangle", MyClass.name);
 		console.assert(r.toString() === "[object Rectangle]", r.toString());
-		console.assert(r.dimensions() === "2 x 3", r.dimensions());
-		console.assert(MyClass(2, 3) === "area = 6", MyClass(2, 3));
+		console.assert(r.area() === 6, r.area());
+	console.groupEnd();
+	console.group("Use an applier function");
+		Rectangle = Class.extend(function Rectangle($super, width, height){
+				$super();
+				this.dimensions = ()=>width+" x "+height;
+			},
+			(width, height)=>"area = "+(width*height)	//applier function for when Rectangle() is called without using `new`
+		);
+		
+		console.assert((new Rectangle(2, 3)).toString() === "[object Rectangle]", (new Rectangle(2, 3)).toString());
+		console.assert(Rectangle(2, 3) === "area = 6", Rectangle(2, 3));
 	console.groupEnd();
 	console.group("Inherit from a parent class");
 		Rectangle = Class.extend(function Rectangle($super, width, height){
