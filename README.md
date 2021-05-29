@@ -1,130 +1,162 @@
 # JavaScript Class Implementation
 
-This implementation allows for classes to be given protected access to items in a super-class.
+This implementation adds the capability for class instances to have [**protected members**](#readme-protected) that can be accessed by derivative class constructors.
 
-This is a JavaScript module.
+This is a JavaScript module. It can be imported into your script like so: `import Class from "Class.mjs.js"`
 
----
+# Class.extend()
 
-## Creating subclasses
+Creates a child class. This is a static method of `Class` and its derivative classes.
 
-**<samp>*Class*.extend([*options*])</samp>**
+## Syntax
 
-Creates a new class that inherits from the parent class.
-
-Parameters:
-- **<code>*options*</code>** {object}  
-This can include any of the following:
-	
-	- **<code>className</code>** {string}  
-	Used for the `name` property of the class constructor, and in the `toString` method for instances of the class. If not specified, it will be the same as the parent class.
-	
-	- **<code>constructorFn</code>** {function}  
-	Initializes new instances of the class.<br><br>
-	**<samp>*options*.constructorFn(*Super*[, ...])</samp>**<br><br>
-	**<code>*Super*</code>** {function} is to be called from inside `constructorFn` to initialize the class, using the class's parent's constructor. It should be called as soon as possible, before using the `this` keyword, to ensure that the instance is properly initialized.<br><br>
-	Additionally, <code>*Super*</code> provides access to protected members (<a href="#protected-members">see below</a>).
-	
-	- **<code>returnFn</code>** {function}  
-	Returns a value when the constructor is called without using the `new` keyword.
-
-#### Example
-
+```javascript
+Class.extend(initializer)
+Class.extend(initializer, applier)
 ```
-let Rectangle = Class.extend({
-	className:"Rectangle",
-	constructorFn:function (Super, width, height){
-		Super();
-		this.width = width||0;
-		this.height = height||0;
-		this.area = function (){ return Math.abs(this.width * this.height); };
-		this.whatAmI = function (){ return "I am a rectangle."; };
+
+### Parameters
+
+[**<code>*initializer*</code>**](#readme-initializer)  
+A function to be executed by the constructor during the process of constructing a new instance of the child class. The name of the *<code>initializer</code>* is used as the name of the class.
+
+**<code>*applier*</code>** *optional*  
+A handler function for when the class is called without using the `new` keyword. Default behavior is to throw a [TypeError](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError).
+
+### Return value
+
+The new class constructor. It has its own static copy of the `extend` method.
+
+<a name="readme-initializer"></a>
+### Initializer
+
+The signature of the *<code>initializer</code>* function is expected to be:
+```javascript
+function MyClassName($super, ...args){
+	//code that does not include `this`
+	const protectedMembers = $super(...args);
+	//code that may include `this`
+}
+```
+
+**<code>*$super*</code>**  
+A [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) to the parent class's constructor, bound as the first argument of the *<code>initializer</code>*. It is to be used like the [`super`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/super) keyword. It *must* be called exactly once during the execution of the constructor, *before* any reference to `this`.
+
+<a name="readme-protected"></a>
+**<code>*protectedMembers*</code>**  
+An object whose members are shared among all the <i><code>initializer</code></i>s that are executed when a new instance of the class is created. This allows a protected value defined in the *<code>initializer</code>* of a class to be accessed and modified within the *<code>initializer</code>* of a derivative class directly, without needing static getters and setters.
+
+## Examples
+
+### Create a new class
+
+```javascript
+const MyClass = Class.extend(function Rectangle($super, width, height){
+	$super();
+	this.dimensions = ()=>width+" x "+height;
+});
+
+let r = new MyClass(2, 3);
+
+console.log(MyClass.name);		// Rectangle
+console.log(r.toString());		// [object Rectangle]
+console.log(r.dimensions());	// 2 x 3
+```
+
+### Use an applier function
+
+```javascript
+const Rectangle = Class.extend(function Rectangle($super, width, height){
+		$super();
+		this.dimensions = ()=>width+" x "+height;
 	},
-	returnFn:function (width, height){
-		return Math.abs((width||0) * (height||0));
-	}
-});
+	(width, height)=>"area = "+(width*height)	//applier function for when Rectangle() is called without using `new`
+);
 
-let Square = Rectangle.extend({
-	className:"Square",
-	constructorFn:function (Super, width){
-		Super(width, width);
-		Object.defineProperty(this, "height", { get:function (){ return this.width; }, set:function (val){ this.width = 1*val||0; }, enumerable:true, configurable:true });
-		let iAm = [this.whatAmI(), "I am a square."].join(" ");
-		this.whatAmI = function (){ return iAm; };
-	},
-	returnFn:function (width){
-		return Math.pow(width||0, 2);
-	}
-});
-
-let s = new Square(3);
-
-s.toString();	//[instance of Square]
-s.area();		//9
-s.height = 4;
-s.area();		//16
-s.whatAmI();		//I am a rectangle. I am a square.
-
+console.log((new Rectangle(2, 3)).toString());	// [object Rectangle]
+console.log(Rectangle(2, 3));		// area = 6
 ```
 
-### Protected members
+### Inherit from a superclass
 
-A class can give its descendants protected access to its private variables. Once <code>*Super*</code> is called within the constructor, the protected properties of its parent class are made available via **<code>*Super*.protected</code>**. This object will be available to child classes as well; any additions/deletions/overloads of its members that are made here in the constructor will be reflected in the class' descendants.
-
-#### Example
-
-```
-let Alpha = Class.extend({
-	className:"Alpha",
-	constructorFn:function (Super){
-		Super();
-		let randomInstanceID = Math.random();
-		Super.protected.rando = randomInstanceID;
-	}
+```javascript
+const Rectangle = Class.extend(function Rectangle($super, width, height){
+	$super();
+	this.dimensions = ()=>width+" x "+height;
 });
 
-let Bravo = Alpha.extend({
-	className:"Bravo",
-	constructorFn:function (Super){
-		Super();
-		this.foo = "My ID is "+Super.protected.rando;
-	}
+const Square = Rectangle.extend(function Square($super, width){
+	$super(width, width);
+	//this.dimensions() is inherited from Rectangle
 });
 
-let b = new Bravo();
+let s = new Square(2);
 
-b.foo;		//My ID is ...
-
+console.log(s.dimensions());	// 2 x 2
 ```
 
+### Use static methods of the parent class
 
----
+```javascript
+const Rectangle = Class.extend(function Rectangle($super, width, height){
+	$super();
+	this.dimensions = ()=>width+" x "+height;
+});
+Rectangle.area = function (width, height){ return width * height; };
 
-### Private members
+const Square = Rectangle.extend(function Square($super, width){
+	$super(width, width);
+	this.area = function (){
+		return $super.area(width, width);	//here, using `$super` as an object is equivalent to using `Rectangle`
+	};
+});
 
-A WeakMap or a symbol can be used to implement private members for class instances, allowing functions defined both inside and outside of the constructor to share data.
+let s = new Square(2);
 
-#### Example using a WeakMap
-
+console.log(Rectangle.area(2, 2));	// 4
+console.log(s.area());				// 4
 ```
-let Cuber = (function (){
+
+### Use protected members
+
+```javascript
+const Rectangle = Class.extend(function Rectangle($super, width, height){
+	const prot = $super();
 	
-	const private = new WeakMap();
+	prot.width = width;
+	prot.height = height;
 	
-	function cube(){ return Math.pow(private.get(this).val, 3); }
-	
-	return Class.extend({
-		constructorFn: function (Super, myVal){
-			Super();
-			private.set(this, { val: myVal });
-			this.cube = cube;
-		}
+	Object.defineProperty(this, "width", {
+		enumerable: true, configurable: true,
+		get(){ return prot.width; },
+		set(width){ return prot.width = width; }
+	});
+	Object.defineProperty(this, "height", {
+		enumerable: true, configurable: true,
+		get(){ return prot.height; },
+		set(height){ return prot.height = height; }
 	});
 	
-})();
+	this.dimensions = ()=>prot.width+" x "+prot.height;
+});
 
-let c = new Cuber(5);
+const Square = Rectangle.extend(function Square($super, width){
+	const prot = $super(width, width);
+	
+	Object.defineProperty(this, "width", {
+		enumerable: true, configurable: true,
+		get(){ return prot.width; },
+		set(width){ return prot.width = prot.height = width; }
+	});
+	Object.defineProperty(this, "height", {
+		enumerable: true, configurable: true,
+		get(){ return prot.height; },
+		set(height){ return prot.height = prot.width = height; }
+	});
+});
 
-c.cube();	//125
+let s = new Square(2);
+console.log(s.dimensions());	// 2 x 2
+s.height = 3;
+console.log(s.dimensions());	// 3 x 3
 ```
