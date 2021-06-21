@@ -40,7 +40,7 @@ function MyClassName($super, ...args){
 ```
 
 **<code>*$super*</code>**  
-A [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) to the parent class's constructor, bound as the first argument of the *<code>initializer</code>*. It is to be used like the [`super`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/super) keyword. It *must* be called exactly once during the execution of the initializer, *before* any reference to `this`.
+A Proxy to the parent class's constructor, bound as the first argument of the *<code>initializer</code>*. It is to be used like the `super` keyword. It *must* be called exactly once during the execution of the initializer, *before* any reference to `this`.
 
 <a name="readme-protected"></a>
 **<code>*protectedMembers*</code>**  
