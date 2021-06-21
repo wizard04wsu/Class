@@ -17,7 +17,7 @@ Class.extend(init, call)
 
 ### Parameters
 
-[**<code>*init*</code>**](#readme-initializer)  
+**<code>*init*</code>**  
 An [initializer](#readme-initializer) function that is called as part of the child class's constructor. The name of the initializer is used as the name of the class.
 
 **<code>*call*</code>** *optional*  
