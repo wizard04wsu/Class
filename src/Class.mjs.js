@@ -55,7 +55,7 @@ defineNonEnumerableProperty(BaseClass, "extend", extend);
 function extend(init, call){
 	/**
 	 * @typedef {function} initializer
-	 * @param {function} $super - The parent class's constructor, bound as the first argument. It is to be used like the `super` keyword. It *must* be called exactly once during the execution of the constructor, before any use of the `this` keyword.
+	 * @param {function} $super - The parent class's constructor, bound as the first argument. It is to be used like the `super` keyword. It *must* be called exactly once during the execution of the initializer, before any use of the `this` keyword.
 	 * @param {...*} args
 	 * @returns {object} - An object providing access to protected members.
 	 */
