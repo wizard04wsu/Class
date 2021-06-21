@@ -3,13 +3,6 @@ import Class from "./Class.mjs.js"
 console.group("Class");
 	console.group("class");
 		console.dir(Class);
-		console.assert(Class.toString() === `function Class(){\r
-	_instanceIsUnderConstruction = false;\r
-	Object.defineProperty(this, protectedMembers, {\r
-		writable: false, enumerable: false, configurable: true,\r
-		value: {}\r
-	});\r
-}`, Class.toString());
 		console.assert(Class.name === "Class", Class.name);
 		console.assert(Class.prototype.toString() === "[object Class]", Class.prototype.toString());
 		console.assert(Class.prototype.constructor === Class, Class.prototype.constructor);
@@ -17,7 +10,6 @@ console.group("Class");
 	console.group("instance");
 		let cl = new Class();
 		console.dir(cl);
-		//console.log(cl);
 		console.assert(cl.toString() === "[object Class]", cl.toString());
 	console.groupEnd();
 console.groupEnd();
@@ -28,13 +20,13 @@ console.group("Alpha");
 		console.dir(Alpha);
 		console.assert(Alpha.toString() === "function Alpha($super){ $super(); }", Alpha.toString());
 		console.assert(Alpha.name === "Alpha", Alpha.name);
-		console.assert(Alpha.prototype.toString() === "[object Class]", Alpha.prototype.toString());
-		console.assert(Alpha.prototype.constructor === Class, Alpha.prototype.constructor);
+		console.assert(Alpha.prototype.toString() === "[object Alpha]", Alpha.prototype.toString());
+		console.assert(Alpha.prototype.constructor === Alpha, Alpha.prototype.constructor);
+		//console.assert(Alpha.__proto__ === Class, Alpha.__proto__);
 	console.groupEnd();
 	console.group("instance");
 		let a = new Alpha();
 		console.dir(a);
-		//console.log(a);
 		console.assert(a.toString() === "[object Alpha]", a.toString());
 	console.groupEnd();
 console.groupEnd();
@@ -43,15 +35,15 @@ console.group("Bravo");
 	console.group("class");
 		let Bravo = Alpha.extend(function Bravo($super){ $super(); });
 		console.dir(Bravo);
-		console.assert(Bravo.toString() === "function Bravo($super){ $super(); }", Bravo.toString());
+		console.log(Bravo.toString());
 		console.assert(Bravo.name === "Bravo", Bravo.name);
-		console.assert(Bravo.prototype.toString() === "[object Alpha]", Alpha.prototype.toString());
-		console.assert(Bravo.prototype.constructor === Alpha, Bravo.prototype.constructor);
+		console.assert(Bravo.prototype.toString() === "[object Bravo]", Alpha.prototype.toString());
+		console.assert(Bravo.prototype.constructor === Bravo, Bravo.prototype.constructor);
+		//console.assert(Bravo.__proto__ === Alpha, Bravo.__proto__);
 	console.groupEnd();
 	console.group("instance");
 		let b = new Bravo();
 		console.dir(b);
-		//console.log(b);
 		console.assert(b.toString() === "[object Bravo]", b.toString());
 	console.groupEnd();
 console.groupEnd();
@@ -165,7 +157,7 @@ console.group("Error Traps");
 		x = X();
 		throw new Error("error was not thrown");
 	}catch(e){
-		console.assert(e.message === "class constructor X cannot be invoked without 'new'", e.message);
+		console.assert(e.message === "class constructor 'X' cannot be invoked without 'new'", e.message);
 	}
 console.groupEnd();
 
@@ -176,13 +168,13 @@ console.group("Inheritance");
 	console.assert(b.constructor === Bravo, b.constructor);
 	console.assert(Bravo.prototype instanceof Alpha, Bravo.prototype);
 	console.assert(!(Bravo.prototype instanceof Bravo), Bravo.prototype);
-	console.assert(Bravo.prototype.constructor === Alpha, Bravo.prototype.constructor);
+	console.assert(Bravo.prototype.constructor === Bravo, Bravo.prototype.constructor);
 	console.assert(!(a instanceof Bravo), a);
 	console.assert(a instanceof Alpha, a);
 	console.assert(a instanceof Class, a);
 	console.assert(a.constructor === Alpha, a.constructor);
 	console.assert(Alpha.prototype instanceof Class, Alpha.prototype);
-	console.assert(Alpha.prototype.constructor === Class, Alpha.prototype.constructor);
+	console.assert(Alpha.prototype.constructor === Alpha, Alpha.prototype.constructor);
 console.groupEnd();
 
 console.group("Rectangle & Square");

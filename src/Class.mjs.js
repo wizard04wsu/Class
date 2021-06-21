@@ -6,10 +6,10 @@ export { BaseClass as default };
 
 
 //for a Class instance property, an object with the instance's protected members
-const protectedMembers = Symbol("protected members");
+const protectedMembersSymbol = Symbol("protected members");
 
-//state: true when indicating that a class is being constructed
-let _instanceIsUnderConstruction = false;
+//state: when true, indicates that an instance of a class is being constructed and that there are still super class constructors that need to be invoked using $super
+let _invokingSuperConstructor = false;
 
 
 /**
@@ -18,14 +18,24 @@ let _instanceIsUnderConstruction = false;
  * @class
  */
 const BaseClass = function Class(){
-	_instanceIsUnderConstruction = false;
-	Object.defineProperty(this, protectedMembers, {
-		writable: false, enumerable: false, configurable: true,
-		value: {}
-	});
+	
+	if(!new.target && !_invokingSuperConstructor){
+		//the 'new' keyword was not used
+		
+		throw new TypeError(`class constructor 'Class' cannot be invoked without 'new'`);
+	}
+	
+	_invokingSuperConstructor = false;
+	defineNonEnumerableProperty(this, protectedMembersSymbol, {}, true);
+	
 }
 
-defineNonEnumerableProperty(BaseClass.prototype, "toString", function toString(){ return `[object ${this.constructor.name}]`; });
+//*** for the prototype ***
+
+//rename it so Object.prototype.toString() will use the base class's name
+defineNonEnumerableProperty(BaseClass.prototype, Symbol.toStringTag, "Class", true);
+
+//*** for the constructor ***
 
 //make extend() a static member of the base class
 defineNonEnumerableProperty(BaseClass, "extend", extend);
@@ -63,6 +73,7 @@ function extend(init, call){
 	const className = init.name;
 	
 	/**
+	 * The constructor for the new class.
 	 * @class
 	 * @augments ParentClass
 	 * @private
@@ -74,46 +85,67 @@ function extend(init, call){
 	 * @throws {ReferenceError} - class constructor cannot be invoked without 'new'
 	 */
 	function ChildClass(...argumentsList){
-		const newInstance = this;
-		let _$superCalled = false;
 		
+		if(!new.target && !_invokingSuperConstructor){
+			//the 'new' keyword was not used
+			
+			//if a 'call' function was passed to 'extend', return its result
+			if(call)
+				return call(...argumentsList);
+			
+			throw new TypeError(`class constructor '${className}' cannot be invoked without 'new'`);
+		}
+		
+		const newInstance = this;
+		
+		_invokingSuperConstructor = false;
+		let _$superCalled = false;
 		const $super = new Proxy(ParentClass, {
-			construct(target, argumentsList, newTarget){	//target===ParentClass, newTarget===the proxy itself ($super)
+			construct(target, argumentsList, newTarget){
+				//target = ParentClass
+				//newTarget = $super
+				
+				//disallow use of the 'new' keyword when calling '$super'
 				throw new ReferenceError("unexpected use of 'new' keyword");
 			},
-			apply(target, thisArg, argumentsList){	//target===ParentClass
-				if(_$superCalled) throw new ReferenceError("super constructor may be called only once during execution of derived constructor");
+			apply(target, thisArg, argumentsList){
+				//target = ParentClass
+				
+				if(_$superCalled)
+					throw new ReferenceError("super constructor may be called only once during execution of derived constructor");
 				_$superCalled = true;
 				
-				_instanceIsUnderConstruction = true;
+				_invokingSuperConstructor = true;
 				target.apply(newInstance, argumentsList);
 				
-				return newInstance[protectedMembers];
+				return newInstance[protectedMembersSymbol];
 			},
-			deleteProperty(target, property){	//target===ParentClass
+			deleteProperty(target, property){
+				//target = ParentClass
+				
 				//disallow deletion of static members of a parent class
 				throw new ReferenceError("invalid delete involving super constructor");
 			}
 		});
 		
-		//I don't believe there's a way to trap access to `this`, but we can at least trap access to its members:
-		function denyAccessToKeywordThis(){
-			if(!_$superCalled) throw new ReferenceError("must call super constructor before accessing 'this'");
+		//I don't believe there's a way to trap access to `this` itself, but we can at least trap access to its properties:
+		function proxyThisMethod(methodName, argumentsList){
+			if(!_$superCalled)
+				throw new ReferenceError("must call super constructor before accessing 'this'");
+			return Reflect[methodName](...argumentsList);
 		}
 		let proxyForKeywordThis = new Proxy(newInstance, {
-			//apply(){                    denyAccessToKeywordThis(); return Reflect.apply(...arguments); },
-			//construct(){                denyAccessToKeywordThis(); return Reflect.construct(...arguments); },
-			defineProperty(){           denyAccessToKeywordThis(); return Reflect.defineProperty(...arguments); },
-			deleteProperty(){           denyAccessToKeywordThis(); return Reflect.deleteProperty(...arguments); },
-			get(){                      denyAccessToKeywordThis(); return Reflect.get(...arguments); },
-			getOwnPropertyDescriptor(){ denyAccessToKeywordThis(); return Reflect.getOwnPropertyDescriptor(...arguments); },
-			getPrototypeOf(){           denyAccessToKeywordThis(); return Reflect.getPrototypeOf(...arguments); },
-			has(){                      denyAccessToKeywordThis(); return Reflect.has(...arguments); },
-			isExtensible(){             denyAccessToKeywordThis(); return Reflect.isExtensible(...arguments); },
-			ownKeys(){                  denyAccessToKeywordThis(); return Reflect.ownKeys(...arguments); },
-			preventExtensions(){        denyAccessToKeywordThis(); return Reflect.preventExtensions(...arguments); },
-			set(){                      denyAccessToKeywordThis(); return Reflect.set(...arguments); },
-			setPrototypeOf(){           denyAccessToKeywordThis(); return Reflect.setPrototypeOf(...arguments); }
+			defineProperty(){           return proxyThisMethod("defineProperty", arguments); },
+			deleteProperty(){           return proxyThisMethod("deleteProperty", arguments); },
+			get(){                      return proxyThisMethod("get", arguments); },
+			getOwnPropertyDescriptor(){ return proxyThisMethod("getOwnPropertyDescriptor", arguments); },
+			getPrototypeOf(){           return proxyThisMethod("getPrototypeOf", arguments); },
+			has(){                      return proxyThisMethod("has", arguments); },
+			isExtensible(){             return proxyThisMethod("isExtensible", arguments); },
+			ownKeys(){                  return proxyThisMethod("ownKeys", arguments); },
+			preventExtensions(){        return proxyThisMethod("preventExtensions", arguments); },
+			set(){                      return proxyThisMethod("set", arguments); },
+			setPrototypeOf(){           return proxyThisMethod("setPrototypeOf", arguments); }
 		});
 		
 		init.apply(proxyForKeywordThis, [$super, ...argumentsList]);
@@ -123,57 +155,35 @@ function extend(init, call){
 		return newInstance;
 	}
 	
+	//*** for the prototype ***
+	
+	//create the prototype (an instance of the parent class)
 	ChildClass.prototype = Object.create(ParentClass.prototype);
-	defineNonEnumerableProperty(ChildClass.prototype, "constructor", ParentClass);
+	//rename it so Object.prototype.toString() will use the new class's name
+	defineNonEnumerableProperty(ChildClass.prototype, Symbol.toStringTag, className, true);
+	//set its constructor to be that of the new class
+	defineNonEnumerableProperty(ChildClass.prototype, "constructor", ChildClass);
 	
-	Object.defineProperty(ChildClass, "name", {
-		writable: false, enumerable: false, configurable: true,
-		value: className
-	});
+	//*** for the constructor ***
 	
-	//ChildClass.toString() outputs the 'init' function
+	//rename it to be that of the initializer
+	defineNonEnumerableProperty(ChildClass, "name", className, true);
+	//override .toString() to only output the initializer function
 	defineNonEnumerableProperty(ChildClass, "toString", function toString(){ return init.toString(); });
 	
 	//make extend() a static method of the new class
 	defineNonEnumerableProperty(ChildClass, "extend", extend);
 	
-	//use a Proxy to distinguish calls to ChildClass between those that do and do not use the `new` keyword
-	//@throws {TypeError} if called without the `new` keyword and without the '{@link call}' argument.
-	const proxyForChildClass = new Proxy(ChildClass, {
-		construct(target, argumentsList, newTarget){	//target===ChildClass, newTarget===the proxy itself (proxyForChildClass)
-			_instanceIsUnderConstruction = false;
-			const newInstance = Reflect.construct(...arguments);
-			
-			defineNonEnumerableProperty(newInstance, "constructor", newTarget);
-			
-			return newInstance;
-		},
-		apply(target, thisArg, argumentsList){	//target===ChildClass or a super class
-			if(_instanceIsUnderConstruction){
-				//the `new` keyword was used, and this proxy handler is for the constructor of a super class
-				
-				_instanceIsUnderConstruction = false;
-				return target.apply(thisArg, argumentsList);	//thisArg===the new instance
-			}
-			else if(call){
-				//the `new` keyword was not used, and a 'call' function was passed to 'extend'
-				
-				return call.apply(thisArg, argumentsList);	//thisArg===`this` in the the caller's context
-			}
-			throw new TypeError(`class constructor ${className} cannot be invoked without 'new'`);
-		}
-	});
-	
-	return proxyForChildClass;
+	return ChildClass;
 }
 
 
 
 /* helper functions */
 
-function defineNonEnumerableProperty(object, property, value){
+function defineNonEnumerableProperty(object, property, value, readonly){
 	Object.defineProperty(object, property, {
-		writable: true, enumerable: false, configurable: true,
+		writable: !readonly, enumerable: false, configurable: true,
 		value: value
 	});
 }
