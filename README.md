@@ -33,9 +33,9 @@ The new class constructor. It has its own static copy of the `extend` method.
 The signature of an initializer function is expected to be:
 ```javascript
 function MyClassName($super, ...args){
-	//code that does not include `this`
+	//... code that does not include `this`
 	const protectedMembers = $super(arg1, arg2, ...);
-	//code that may include `this`
+	//... code that may include `this`
 }
 ```
 
